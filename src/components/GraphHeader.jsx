@@ -8,7 +8,7 @@ function GraphHeader({onCollapseClick, isCollapsed}) {
             <ElementPair gap_class={"gap-1"}>
                 <TextForGraphHeader graph_header={"Graph 1"}></TextForGraphHeader>
                 <button onClick={onCollapseClick}>
-                    <img src="collapse_graph.svg" alt="collapse graph"/>
+                    <img className={`transition-transform duration-200 ${isCollapsed ? "-rotate-90" : ""}`} src="collapse_graph.svg" alt="collapse graph"/>
                 </button>
             </ElementPair>
             <ElementPair gap_class={"gap-2"}>

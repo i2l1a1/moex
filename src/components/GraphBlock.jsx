@@ -20,7 +20,7 @@ function GraphBlock() {
             ></GraphHeader>
             {!isCollapsed && (
                 <div>
-                    {123}
+                    {/*{123}*/}
                 </div>
             )}
         </div>
