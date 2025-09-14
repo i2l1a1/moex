@@ -1,6 +1,8 @@
 import "../App.css";
 import GraphHeader from "./GraphHeader.jsx";
 import {useState} from "react";
+import PanelGroup from "./PanelGroup.jsx";
+import Panel from "./Panel.jsx";
 
 function GraphBlock() {
     const [isCollapsed, setIsCollapsed] = useState(false);
@@ -20,7 +22,7 @@ function GraphBlock() {
             ></GraphHeader>
             {!isCollapsed && (
                 <div>
-                    {/*{123}*/}
+                    <Panel></Panel>
                 </div>
             )}
         </div>
