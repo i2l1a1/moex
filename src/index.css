@@ -1,3 +1,12 @@
+@font-face {
+    font-family: "Golos Text";
+    src: url("./assets/fonts/GolosText-VariableFont_wght.ttf") format("truetype");
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+}
+
 :root {
-    background: var(--background);
+    background: var(--color-background);
+    font-family: "Golos Text", sans-serif;
 }
