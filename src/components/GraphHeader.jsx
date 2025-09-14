@@ -1,13 +1,15 @@
-import '../App.css'
+import "../App.css";
 import ElementPair from "./ElementPair.jsx";
 import TextForGraphHeader from "./TextForGraphHeader.jsx";
 
-function GraphHeader() {
+function GraphHeader({onCollapseClick, isCollapsed}) {
     return (
-        <div className=" flex justify-between items-center ml-10 mr-[25px] mt-7">
+        <div className={`flex justify-between items-center ml-10 mr-[25px] mt-7 ${isCollapsed ? "mb-7" : ""}`}>
             <ElementPair gap_class={"gap-1"}>
                 <TextForGraphHeader graph_header={"Graph 1"}></TextForGraphHeader>
-                <img src="collapse_graph.svg" alt="collapse graph"/>
+                <button onClick={onCollapseClick}>
+                    <img src="collapse_graph.svg" alt="collapse graph"/>
+                </button>
             </ElementPair>
             <ElementPair gap_class={"gap-2"}>
                 <img src="duplicate_graph.svg" alt="duplicate graph"/>
