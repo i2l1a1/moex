@@ -1,5 +1,5 @@
-import '../App.css'
-import ElementPair from "./ElementPair.jsx";
+import '../../App.css'
+import ElementPair from "../additional_components/ElementPair.jsx";
 import TextForGraphPanelGroup from "./TextForGraphPanelGroup.jsx";
 
 function PanelGroup({panel_group, children, onCollapseClick, isCollapsed}) {

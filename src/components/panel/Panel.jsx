@@ -1,4 +1,4 @@
-import '../App.css'
+import '../../App.css'
 import PanelGroup from "./PanelGroup.jsx";
 import {useState} from "react";
 import PanelGroupInterior from "./PanelGroupInterior.jsx";

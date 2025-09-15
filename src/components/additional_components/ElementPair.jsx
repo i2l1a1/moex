@@ -1,4 +1,4 @@
-import '../App.css'
+import '../../App.css'
 
 function ElementPair({children, gap_class}) {
     return (

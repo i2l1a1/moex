@@ -1,5 +1,5 @@
 import './App.css'
-import GraphBlock from "./components/GraphBlock.jsx";
+import GraphBlock from "./components/graph_block/GraphBlock.jsx";
 
 function App() {
     return (<div>

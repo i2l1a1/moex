@@ -1,12 +1,12 @@
-import "../App.css";
-import ElementPair from "./ElementPair.jsx";
-import TextForGraphHeader from "./TextForGraphHeader.jsx";
+import "../../App.css";
+import ElementPair from "../additional_components/ElementPair.jsx";
+import TextForGraphBlockHeader from "./TextForGraphBlockHeader.jsx";
 
-function GraphHeader({onCollapseClick, isCollapsed}) {
+function GraphBlockHeader({onCollapseClick, isCollapsed}) {
     return (
         <div className={`flex justify-between items-center ml-10 mr-[25px] mt-7 ${isCollapsed ? "mb-7" : ""}`}>
             <ElementPair gap_class={"gap-1"}>
-                <TextForGraphHeader graph_header={"Graph 1"}></TextForGraphHeader>
+                <TextForGraphBlockHeader graph_header={"Graph 1"}></TextForGraphBlockHeader>
                 <button onClick={onCollapseClick}>
                     <img className={`transition-transform duration-200 ${isCollapsed ? "-rotate-90" : ""}`} src="collapse_graph.svg" alt="collapse graph"/>
                 </button>
@@ -18,4 +18,4 @@ function GraphHeader({onCollapseClick, isCollapsed}) {
         </div>);
 }
 
-export default GraphHeader;
+export default GraphBlockHeader;

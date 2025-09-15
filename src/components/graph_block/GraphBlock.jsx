@@ -1,7 +1,7 @@
-import "../App.css";
-import GraphHeader from "./GraphHeader.jsx";
+import "../../App.css";
+import GraphBlockHeader from "./GraphBlockHeader.jsx";
 import {useState} from "react";
-import Panel from "./Panel.jsx";
+import Panel from "../panel/Panel.jsx";
 
 function GraphBlock() {
     const [isCollapsed, setIsCollapsed] = useState(false);
@@ -15,10 +15,10 @@ function GraphBlock() {
             className={`fixed bg-background-block rounded-[40px] ${
                 isCollapsed ? "top-10 left-10 right-10" : "inset-10"}`}
         >
-            <GraphHeader
+            <GraphBlockHeader
                 onCollapseClick={toggleCollapse}
                 isCollapsed={isCollapsed}
-            ></GraphHeader>
+            ></GraphBlockHeader>
             {!isCollapsed && (
                 <div>
                     <Panel></Panel>
