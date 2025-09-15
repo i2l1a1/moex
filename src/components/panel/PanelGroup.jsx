@@ -4,7 +4,7 @@ import TextForGraphPanelGroup from "./TextForGraphPanelGroup.jsx";
 
 function PanelGroup({panel_group, children, onCollapseClick, isCollapsed}) {
     return (
-        <div className={`flex flex-col ${!isCollapsed ? 'gap-[6px]' : ''}`}>
+        <div className={` flex flex-col ${!isCollapsed ? 'mb-[14px]' : ''}`}>
             <ElementHorizontalList>
                 <button onClick={onCollapseClick}>
                     <img className={`transition-transform duration-200 ${!isCollapsed ? "rotate-90" : ""}`}
