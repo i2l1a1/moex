@@ -4,4 +4,8 @@
     --color-background: #060911;
     --color-background-block: #111219;
     --color-main-text: #AFB7C9;
+    --color-drop-down: #16171F;
+    --color-drop-down-hover-item: #1C1D27;
+
+    --text-button-text: 14px;
 }
