@@ -1,7 +1,6 @@
 import "../App.css";
 import GraphHeader from "./GraphHeader.jsx";
 import {useState} from "react";
-import PanelGroup from "./PanelGroup.jsx";
 import Panel from "./Panel.jsx";
 
 function GraphBlock() {
