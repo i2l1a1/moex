@@ -1,4 +1,12 @@
+<<<<<<< HEAD
 # Logs
+=======
+frontend/node_modules
+frontend/dist
+frontend/dist-ssr
+frontend/*.local
+
+>>>>>>> a302a6b (frontend & server folders)
 logs
 *.log
 npm-debug.log*
@@ -7,6 +15,7 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+<<<<<<< HEAD
 node_modules
 dist
 dist-ssr
@@ -17,6 +26,32 @@ dist-ssr
 !.vscode/extensions.json
 .idea
 .DS_Store
+=======
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.eggs/
+*.egg
+.Python
+.env
+venv/
+ENV/
+env/
+.venv/
+frontend/.venv
+server/.venv
+
+.vscode/*
+!.vscode/extensions.json
+frontend/.idea
+.idea
+frontend/.DS_Store
+.DS_Store
+server/.idea
+server/.DS_Store
+>>>>>>> a302a6b (frontend & server folders)
 *.suo
 *.ntvs*
 *.njsproj
