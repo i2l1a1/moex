@@ -4,6 +4,7 @@ import {useState} from "react";
 import Panel from "../panel/Panel.jsx";
 import {initialGeneralValues} from "../panel/controller_lists/generalDefaults.js";
 import {initialPeriodValues} from "../panel/controller_lists/periodDefaults.js";
+import Graph from "../graph/Graph.jsx";
 
 function GraphBlock() {
     const [isCollapsed, setIsCollapsed] = useState(false);
@@ -25,20 +26,19 @@ function GraphBlock() {
     return (
         <div
             className={`fixed bg-background-block rounded-[40px] ${
-                isCollapsed ? "top-10 left-10 right-10" : "inset-10"}`}
+                isCollapsed ? "top-10 left-10 right-10" : "inset-10"} flex flex-col overflow-hidden`}
         >
             <GraphBlockHeader
                 onCollapseClick={toggleCollapse}
                 isCollapsed={isCollapsed}
             ></GraphBlockHeader>
             {!isCollapsed && (
-                <div>
+                <div className="flex-1 flex flex-col px-[40px] pb-[40px]">
                     <Panel
                         onGeneralChange={handleGeneralChange}
                         onPeriodChange={handlePeriodChange}
                     ></Panel>
-                    <p className="text-[#666]">Selected General: {selectedGeneralValues.join(", ")}</p>
-                    <p className="text-[#666]">Selected Period: {selectedPeriodValues.join(", ")}</p>
+                    <Graph></Graph>
                 </div>
             )}
         </div>

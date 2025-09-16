@@ -27,7 +27,7 @@ function Panel({onGeneralChange, onPeriodChange}) {
     };
 
     return (
-        <div className=" flex flex-col gap-[4px] mt-[14px] ml-[23px] mr-10">
+        <div className="flex flex-col gap-[4px] mt-[14px] ml-[-15px]">
             <PanelGroup onCollapseClick={toggleCollapseGeneralGroup}
                         isCollapsed={isCollapsedGeneralGroup}
                         panel_group={"General"}
