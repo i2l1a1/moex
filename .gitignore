@@ -1,12 +1,10 @@
-<<<<<<< HEAD
-# Logs
-=======
+# Frontend / Node.js
 frontend/node_modules
 frontend/dist
 frontend/dist-ssr
 frontend/*.local
 
->>>>>>> a302a6b (frontend & server folders)
+# Logs
 logs
 *.log
 npm-debug.log*
@@ -15,18 +13,8 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-<<<<<<< HEAD
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-=======
+# Python / backend
+__pycache__/
 *.py[cod]
 *.pyo
 *.pyd
@@ -43,15 +31,15 @@ env/
 frontend/.venv
 server/.venv
 
+# Editor / OS
 .vscode/*
 !.vscode/extensions.json
-frontend/.idea
 .idea
-frontend/.DS_Store
-.DS_Store
+frontend/.idea
 server/.idea
+.DS_Store
+frontend/.DS_Store
 server/.DS_Store
->>>>>>> a302a6b (frontend & server folders)
 *.suo
 *.ntvs*
 *.njsproj
