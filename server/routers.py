@@ -12,5 +12,5 @@ async def just_for_fun():
 
 
 @router.get("/get_all_data")
-async def get_all_data(from_data: str = "2024-01-15", till_date: str = "2024-01-25"):
+async def get_all_data(from_data: str = "2025-01-01", till_date: str = "2025-09-17"):
     return api_data.getFutoi("si", from_data=from_data, till_date=till_date).to_dict(orient="records")

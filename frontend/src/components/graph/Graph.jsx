@@ -2,63 +2,49 @@ import "../../App.css";
 import {CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis} from 'recharts';
 import useFetch from "../../hooks/useFetch.jsx";
 
-const data_example = [
-    {
-        name: 'Page A',
-        uv: 4000,
-        pv: 2400,
-        amt: 2400,
-    },
-    {
-        name: 'Page B',
-        uv: 3000,
-        pv: 1398,
-        amt: 2210,
-    },
-    {
-        name: 'Page C',
-        uv: 2000,
-        pv: 9800,
-        amt: 2290,
-    },
-    {
-        name: 'Page D',
-        uv: 2780,
-        pv: 3908,
-        amt: 2000,
-    },
-    {
-        name: 'Page E',
-        uv: 1890,
-        pv: 4800,
-        amt: 2181,
-    },
-    {
-        name: 'Page F',
-        uv: 2390,
-        pv: 3800,
-        amt: 2500,
-    },
-    {
-        name: 'Page G',
-        uv: 3490,
-        pv: 4300,
-        amt: 2100,
-    },
-];
-
 function Graph() {
     const {data, loading, error} = useFetch(
         "http://127.0.0.1:9091/get_all_data"
     );
-    console.log(data);
+
+    let processedData = {};
+    if (data) {
+        data.forEach((item) => {
+            const {
+                tradedate,
+                clgroup,
+                pos_long,
+                pos_short,
+                pos_long_num,
+                pos_short_num,
+            } = item;
+
+            if (!processedData[tradedate]) {
+                processedData[tradedate] = {tradedate: tradedate};
+            }
+            if (clgroup === "FIZ") {
+                processedData[tradedate].FIZ_pos_long = pos_long;
+                processedData[tradedate].FIZ_pos_short = pos_short;
+                processedData[tradedate].FIZ_pos_long_num = pos_long_num;
+                processedData[tradedate].FIZ_pos_short_num = pos_short_num;
+            } else if (clgroup === "YUR") {
+                processedData[tradedate].YUR_pos_long = pos_long;
+                processedData[tradedate].YUR_pos_short = pos_short;
+                processedData[tradedate].YUR_pos_long_num = pos_long_num;
+                processedData[tradedate].YUR_pos_short_num = pos_short_num;
+            }
+        });
+
+        processedData = Object.values(processedData);
+    }
+
+    if (loading) return <div>Loading...</div>;
+    if (error) return <div>Error: {error.message}</div>;
 
     return (
         <ResponsiveContainer className="w-full mt-[26px] flex-1">
             <LineChart
-                // width={500}
-                // height={300}
-                data={data_example}
+                data={processedData}
                 margin={{
                     top: 5,
                     right: 30,
@@ -67,13 +53,45 @@ function Graph() {
                 }}
             >
                 <CartesianGrid strokeDasharray="3 3"/>
-                <XAxis dataKey="name"/>
-                <YAxis yAxisId="left"/>
-                <YAxis yAxisId="right" orientation="right"/>
+                <XAxis
+                    dataKey="tradedate"
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                    interval="preserveStartEnd"
+                    tickFormatter={(tick) => {
+                        const date = new Date(tick);
+                        return date.toLocaleString("ru-RU", {
+                            month: "short",
+                            year: "numeric",
+                        });
+                    }}
+                />
+                <YAxis
+                    yAxisId="num"
+                    label={{
+                        value: "Количество контрактов",
+                        angle: -90,
+                        position: "insideLeft",
+                    }}
+                />
+                <YAxis
+                    yAxisId="pos"
+                    orientation="right"
+                    label={{
+                        value: "Цена",
+                        angle: 90,
+                        position: "insideRight",
+                    }}
+                />
                 <Tooltip/>
                 <Legend/>
-                <Line yAxisId="left" type="monotone" dataKey="pv" stroke="#8884d8" activeDot={{r: 4}}/>
-                <Line yAxisId="right" type="monotone" dataKey="uv" stroke="#82ca9d"/>
+                <Line yAxisId="pos" type="monotone" dataKey="FIZ_pos_long" stroke="#2751A5" name="FIZ Long"
+                      dot={false}/>
+                <Line yAxisId="pos" type="monotone" dataKey="YUR_pos_long" stroke="#CF504A" name="YUR Long"
+                      dot={false}/>
+                <Line yAxisId="num" type="monotone" dataKey="YUR_pos_short_num" stroke="#D2691E" name="YUR Short Num"
+                      dot={false}/>
             </LineChart>
         </ResponsiveContainer>
     );
