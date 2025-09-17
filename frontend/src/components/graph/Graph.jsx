@@ -1,7 +1,8 @@
 import "../../App.css";
 import {CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis} from 'recharts';
+import useFetch from "../../hooks/useFetch.jsx";
 
-const data = [
+const data_example = [
     {
         name: 'Page A',
         uv: 4000,
@@ -47,12 +48,17 @@ const data = [
 ];
 
 function Graph() {
+    const {data, loading, error} = useFetch(
+        "http://127.0.0.1:9091/just_for_fun"
+    );
+    console.log(data);
+
     return (
         <ResponsiveContainer className="w-full mt-[26px] flex-1">
             <LineChart
                 // width={500}
                 // height={300}
-                data={data}
+                data={data_example}
                 margin={{
                     top: 5,
                     right: 30,
