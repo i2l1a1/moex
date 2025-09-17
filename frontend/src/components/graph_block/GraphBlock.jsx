@@ -25,15 +25,15 @@ function GraphBlock() {
 
     return (
         <div
-            className={`fixed bg-background-block rounded-[40px] ${
-                isCollapsed ? "top-10 left-10 right-10" : "inset-10"} flex flex-col overflow-hidden`}
+            className={`fixed bg-background-block rounded-[40px] pt-5 ${
+                isCollapsed ? "top-8 left-8 right-8" : "inset-8"} flex flex-col overflow-hidden gap-[6px]`}
         >
             <GraphBlockHeader
                 onCollapseClick={toggleCollapse}
                 isCollapsed={isCollapsed}
             ></GraphBlockHeader>
             {!isCollapsed && (
-                <div className="flex-1 flex flex-col px-[40px] pb-[40px]">
+                <div className="flex-1 flex flex-col pl-8 pr-8 pb-8 gap-[22px]">
                     <Panel
                         onGeneralChange={handleGeneralChange}
                         onPeriodChange={handlePeriodChange}

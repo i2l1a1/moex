@@ -42,7 +42,7 @@ function Graph() {
     if (error) return <div>Error: {error.message}</div>;
 
     return (
-        <ResponsiveContainer className="w-full mt-[26px] flex-1">
+        <ResponsiveContainer className="w-full flex-1">
             <LineChart
                 data={processedData}
                 margin={{
@@ -90,7 +90,7 @@ function Graph() {
                       dot={false}/>
                 <Line yAxisId="pos" type="monotone" dataKey="YUR_pos_long" stroke="#CF504A" name="YUR Long"
                       dot={false}/>
-                <Line yAxisId="num" type="monotone" dataKey="YUR_pos_short_num" stroke="#D2691E" name="YUR Short Num"
+                <Line yAxisId="num" type="monotone" dataKey="YUR_pos_short_num" stroke="#48CF82" name="YUR Short Num"
                       dot={false}/>
             </LineChart>
         </ResponsiveContainer>
