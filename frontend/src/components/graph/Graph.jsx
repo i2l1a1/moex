@@ -49,7 +49,7 @@ const data_example = [
 
 function Graph() {
     const {data, loading, error} = useFetch(
-        "http://127.0.0.1:9091/just_for_fun"
+        "http://127.0.0.1:9091/get_all_data"
     );
     console.log(data);
 
