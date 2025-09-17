@@ -8,11 +8,16 @@ import Graph from "../graph/Graph.jsx";
 
 function GraphBlock() {
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const [isPanelCollapsed, setIsPanelCollapsed] = useState(false);
     const [selectedGeneralValues, setSelectedGeneralValues] = useState(initialGeneralValues);
     const [selectedPeriodValues, setSelectedPeriodValues] = useState(initialPeriodValues);
 
     const toggleCollapse = () => {
         setIsCollapsed(!isCollapsed);
+    };
+
+    const togglePanel = () => {
+        setIsPanelCollapsed(!isPanelCollapsed);
     };
 
     const handleGeneralChange = (values) => {
@@ -26,18 +31,20 @@ function GraphBlock() {
     return (
         <div
             className={`fixed bg-background-block rounded-[40px] pt-5 ${
-                isCollapsed ? "top-8 left-8 right-8" : "inset-8"} flex flex-col overflow-hidden gap-[6px]`}
+                isCollapsed ? "top-8 left-8 right-8" : "inset-8"} flex flex-col overflow-hidden
+                ${isPanelCollapsed ? "gap-5" : "gap-[6px]"}`}
         >
             <GraphBlockHeader
                 onCollapseClick={toggleCollapse}
+                onTogglePanelClick={togglePanel}
                 isCollapsed={isCollapsed}
             ></GraphBlockHeader>
             {!isCollapsed && (
                 <div className="flex-1 flex flex-col pl-8 pr-8 pb-8 gap-[22px]">
-                    <Panel
+                    {!isPanelCollapsed && <Panel
                         onGeneralChange={handleGeneralChange}
                         onPeriodChange={handlePeriodChange}
-                    ></Panel>
+                    ></Panel>}
                     <Graph></Graph>
                 </div>
             )}
