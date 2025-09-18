@@ -17,7 +17,7 @@ function GraphBlock() {
         useState(true);
 
     const requestParameters = {
-        ticker: selectedGeneralValues[0].split(" ")[0],
+        ticker: selectedGeneralValues.ticker.split(" ")[0],
         from_data: "2023-05-01",
         till_date: "2024-02-01",
     };
