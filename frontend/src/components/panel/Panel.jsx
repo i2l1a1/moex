@@ -5,7 +5,7 @@ import PanelGroupInterior from "./PanelGroupInterior.jsx";
 import ControllerListGeneral from "./controller_lists/ControllerListGeneral.jsx";
 import ControllerListPeriod from "./controller_lists/ControllerListPeriod.jsx";
 
-function Panel({onGeneralChange, onPeriodChange, onLastPanelGroupChange}) {
+function Panel({onGeneralChange, onPeriodChange, onLastPanelGroupChange, selectedGeneralValues, selectedPeriodValues}) {
     const [isCollapsedGeneralGroup, setIsCollapsedGeneralGroup] =
         useState(true);
     const [isCollapsedPeriodGroup, setIsCollapsedPeriodGroup] = useState(true);
@@ -38,6 +38,7 @@ function Panel({onGeneralChange, onPeriodChange, onLastPanelGroupChange}) {
                     {
                         <ControllerListGeneral
                             onSelectGeneral={handleGeneralSelect}
+                            selectedGeneralValues={selectedGeneralValues}
                         ></ControllerListGeneral>
                     }
                 </PanelGroupInterior>
@@ -51,6 +52,7 @@ function Panel({onGeneralChange, onPeriodChange, onLastPanelGroupChange}) {
                     {
                         <ControllerListPeriod
                             onSelectPeriod={handlePeriodSelect}
+                            selectedPeriodValues={selectedPeriodValues}
                         ></ControllerListPeriod>
                     }
                 </PanelGroupInterior>

@@ -67,12 +67,11 @@ function GraphBlock() {
                             onLastPanelGroupChange={
                                 handleLastPanelGroupCollapseChange
                             }
+                            selectedGeneralValues={selectedGeneralValues}
+                            selectedPeriodValues={selectedPeriodValues}
                         ></Panel>
                     )}
-                    <Graph
-                        selectedGeneralValues={selectedGeneralValues}
-                        requestParameters={requestParameters}
-                    ></Graph>
+                    <Graph requestParameters={requestParameters}></Graph>
                 </div>
             )}
         </div>

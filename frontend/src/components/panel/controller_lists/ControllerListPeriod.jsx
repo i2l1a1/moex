@@ -1,30 +1,37 @@
 import ElementHorizontalList from "../../additional_components/ElementHorizontalList.jsx";
-import Dropdown from "../../additional_components/Dropdown.jsx";
-import {useState} from "react";
-import {periodOptions, initialPeriodValues} from "./periodDefaults.js";
+import {periodOptions} from "./periodDefaults.js";
 
-function ControllerListPeriod({onSelectPeriod}) {
-    const [selectedValues, setSelectedValues] = useState(initialPeriodValues);
-
+function ControllerListPeriod({onSelectPeriod, selectedPeriodValues}) {
     const handleDropdownSelect = (index, value) => {
-        const newSelectedValues = [...selectedValues];
+        const newSelectedValues = [...selectedPeriodValues];
         newSelectedValues[index] = value;
-        setSelectedValues(newSelectedValues);
         onSelectPeriod(newSelectedValues);
     };
 
     return (
         <div>
             <ElementHorizontalList gap_class={"gap-4"}>
-                {selectedValues.map((value, index) => (
-                    <Dropdown
+                {selectedPeriodValues.map((value, index) => (
+                    <select
                         key={index}
-                        options={periodOptions[index]}
-                        onSelect={(newValue) =>
-                            handleDropdownSelect(index, newValue)
+                        value={value}
+                        onChange={(e) =>
+                            handleDropdownSelect(index, e.target.value)
                         }
-                        initialValue={value}
-                    />
+                        className="w-[280px] h-[36px] pr-4 pl-[14px] text-main-text text-button-text transition bg-drop-down rounded-[15px] overflow-y-auto max-h-[200px] appearance-none"
+                        style={{
+                            backgroundImage: `url('expand_dropdown.svg')`,
+                            backgroundRepeat: "no-repeat",
+                            backgroundPosition: "right 14px center",
+                            backgroundSize: "16px",
+                        }}
+                    >
+                        {periodOptions[index].map((option) => (
+                            <option key={option} value={option}>
+                                {option}
+                            </option>
+                        ))}
+                    </select>
                 ))}
             </ElementHorizontalList>
         </div>
