@@ -1,6 +1,6 @@
 import "../../App.css";
 import PanelGroup from "./PanelGroup.jsx";
-import {useState, useEffect} from "react";
+import {useState} from "react";
 import PanelGroupInterior from "./PanelGroupInterior.jsx";
 import ControllerListGeneral from "./controller_lists/ControllerListGeneral.jsx";
 import ControllerListPeriod from "./controller_lists/ControllerListPeriod.jsx";
@@ -15,7 +15,9 @@ function Panel({onGeneralChange, onPeriodChange, onLastPanelGroupChange}) {
     };
 
     const toggleCollapsePeriodGroup = () => {
-        setIsCollapsedPeriodGroup(!isCollapsedPeriodGroup);
+        const newState = !isCollapsedPeriodGroup;
+        setIsCollapsedPeriodGroup(newState);
+        onLastPanelGroupChange(newState);
     };
 
     const handleGeneralSelect = (values) => {
@@ -25,10 +27,6 @@ function Panel({onGeneralChange, onPeriodChange, onLastPanelGroupChange}) {
     const handlePeriodSelect = (values) => {
         onPeriodChange(values);
     };
-
-    useEffect(() => {
-        onLastPanelGroupChange(isCollapsedPeriodGroup);
-    }, [isCollapsedPeriodGroup, onLastPanelGroupChange]);
 
     return (
         <div className="flex flex-col -ml-4">
