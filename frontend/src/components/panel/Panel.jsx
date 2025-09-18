@@ -1,11 +1,11 @@
 import "../../App.css";
 import PanelGroup from "./PanelGroup.jsx";
-import {useState} from "react";
+import {useState, useEffect} from "react";
 import PanelGroupInterior from "./PanelGroupInterior.jsx";
 import ControllerListGeneral from "./controller_lists/ControllerListGeneral.jsx";
 import ControllerListPeriod from "./controller_lists/ControllerListPeriod.jsx";
 
-function Panel({onGeneralChange, onPeriodChange}) {
+function Panel({onGeneralChange, onPeriodChange, onLastPanelGroupChange}) {
     const [isCollapsedGeneralGroup, setIsCollapsedGeneralGroup] =
         useState(true);
     const [isCollapsedPeriodGroup, setIsCollapsedPeriodGroup] = useState(true);
@@ -25,6 +25,10 @@ function Panel({onGeneralChange, onPeriodChange}) {
     const handlePeriodSelect = (values) => {
         onPeriodChange(values);
     };
+
+    useEffect(() => {
+        onLastPanelGroupChange(isCollapsedPeriodGroup);
+    }, [isCollapsedPeriodGroup, onLastPanelGroupChange]);
 
     return (
         <div className="flex flex-col -ml-4">

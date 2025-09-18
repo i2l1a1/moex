@@ -11,6 +11,7 @@ function GraphBlock() {
     const [isPanelCollapsed, setIsPanelCollapsed] = useState(false);
     const [selectedGeneralValues, setSelectedGeneralValues] = useState(initialGeneralValues);
     const [selectedPeriodValues, setSelectedPeriodValues] = useState(initialPeriodValues);
+    const [isLastPanelGroupCollapsed, setIsLastPanelGroupCollapsed] = useState(true);
 
     const toggleCollapse = () => {
         setIsCollapsed(!isCollapsed);
@@ -28,6 +29,10 @@ function GraphBlock() {
         setSelectedPeriodValues(values);
     };
 
+    const handleLastPanelGroupCollapseChange = (value) => {
+        setIsLastPanelGroupCollapsed(value);
+    };
+
     return (
         <div
             className={`fixed bg-background-block rounded-[40px] pt-5 ${
@@ -40,10 +45,12 @@ function GraphBlock() {
                 isCollapsed={isCollapsed}
             ></GraphBlockHeader>
             {!isCollapsed && (
-                <div className="flex-1 flex flex-col pl-8 pr-8 pb-8 gap-[22px]">
+                <div
+                    className={`flex-1 flex flex-col pl-8 pr-8 pb-8 ${isLastPanelGroupCollapsed ? "gap-[18px]" : "gap-8"}`}>
                     {!isPanelCollapsed && <Panel
                         onGeneralChange={handleGeneralChange}
                         onPeriodChange={handlePeriodChange}
+                        onLastPanelGroupChange={handleLastPanelGroupCollapseChange}
                     ></Panel>}
                     <Graph></Graph>
                 </div>
