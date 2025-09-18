@@ -13,13 +13,15 @@ function Dropdown({options, onSelect, initialValue}) {
     };
 
     return (
-        <div className="relative w-[240px]">
+        <div className="relative w-[280px]">
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className={`w-full h-[36px] flex items-center justify-between pr-4 pl-[14px] text-main-text text-button-text transition
                     ${isOpen ? "bg-drop-down rounded-t-[15px] rounded-b-none" : "bg-drop-down rounded-[15px]"}`}
             >
-                {selectedValue}
+                <span className="overflow-hidden text-ellipsis whitespace-nowrap mr-2">
+                    {selectedValue}
+                </span>
                 <img
                     src="expand_dropdown.svg"
                     alt={"expand_dropdown"}
@@ -29,7 +31,7 @@ function Dropdown({options, onSelect, initialValue}) {
 
             {isOpen && (
                 <div
-                    className="absolute z-10 w-full top-full bg-drop-down rounded-b-[15px] border-t border-drop-down-hover-item overflow-hidden">
+                    className="absolute z-10 w-full top-full bg-drop-down rounded-b-[15px] border-t border-drop-down-hover-item overflow-y-auto max-h-[200px]">
                     {options.map((option) => (
                         <button
                             key={option}

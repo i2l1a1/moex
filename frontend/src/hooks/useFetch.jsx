@@ -1,6 +1,6 @@
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 
-function useFetch(url) {
+function useFetch(url, requestParameters) {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -8,7 +8,13 @@ function useFetch(url) {
     useEffect(() => {
         async function fetchData(url) {
             try {
-                const res = await fetch(url)
+                const res = await fetch(url, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(requestParameters),
+                });
                 if (!res.ok) {
                     throw new Error(`HTTP ERROR: ${res.status}`);
                 }
@@ -21,13 +27,10 @@ function useFetch(url) {
             }
         }
 
-        fetchData(url).then(r => {
+        fetchData(url).then((r) => {});
+    }, [url, requestParameters]);
 
-        });
-
-    }, [url]);
-
-    return {data, loading, error};
+    return { data, loading, error };
 }
 
 export default useFetch;

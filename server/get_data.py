@@ -18,6 +18,6 @@ class GetDataFromAPI:
 
         response = requests.request("GET", url, headers=headers)
 
-        df = pd.DataFrame(response.json()["futoi"]["data"], columns=response.json()["futoi"]["columns"])
+        df = pd.DataFrame(response.json()["futoi"]["data"], columns=response.json()["futoi"]["columns"])[::-1]
 
         return df

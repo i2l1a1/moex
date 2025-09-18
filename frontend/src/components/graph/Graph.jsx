@@ -1,10 +1,20 @@
 import "../../App.css";
-import {CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis} from 'recharts';
+import {
+    CartesianGrid,
+    Legend,
+    Line,
+    LineChart,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis,
+} from "recharts";
 import useFetch from "../../hooks/useFetch.jsx";
 
-function Graph() {
+function Graph({requestParameters}) {
     const {data, loading, error} = useFetch(
-        "http://127.0.0.1:9091/get_all_data"
+        "http://127.0.0.1:9091/get_all_data",
+        requestParameters
     );
 
     let processedData = {};
@@ -37,6 +47,8 @@ function Graph() {
 
         processedData = Object.values(processedData);
     }
+
+    console.log(loading);
 
     if (loading) return <div>Loading...</div>;
     if (error) return <div>Error: {error.message}</div>;
@@ -86,12 +98,30 @@ function Graph() {
                 />
                 <Tooltip/>
                 <Legend/>
-                <Line yAxisId="pos" type="monotone" dataKey="FIZ_pos_long" stroke="#2751A5" name="FIZ Long"
-                      dot={false}/>
-                <Line yAxisId="pos" type="monotone" dataKey="YUR_pos_long" stroke="#CF504A" name="YUR Long"
-                      dot={false}/>
-                <Line yAxisId="num" type="monotone" dataKey="YUR_pos_short_num" stroke="#48CF82" name="YUR Short Num"
-                      dot={false}/>
+                <Line
+                    yAxisId="pos"
+                    type="monotone"
+                    dataKey="FIZ_pos_long"
+                    stroke="#2751A5"
+                    name="FIZ Long"
+                    dot={false}
+                />
+                <Line
+                    yAxisId="pos"
+                    type="monotone"
+                    dataKey="YUR_pos_long"
+                    stroke="#CF504A"
+                    name="YUR Long"
+                    dot={false}
+                />
+                <Line
+                    yAxisId="num"
+                    type="monotone"
+                    dataKey="YUR_pos_short_num"
+                    stroke="#48CF82"
+                    name="YUR Short Num"
+                    dot={false}
+                />
             </LineChart>
         </ResponsiveContainer>
     );

@@ -9,9 +9,18 @@ import Graph from "../graph/Graph.jsx";
 function GraphBlock() {
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [isPanelCollapsed, setIsPanelCollapsed] = useState(false);
-    const [selectedGeneralValues, setSelectedGeneralValues] = useState(initialGeneralValues);
-    const [selectedPeriodValues, setSelectedPeriodValues] = useState(initialPeriodValues);
-    const [isLastPanelGroupCollapsed, setIsLastPanelGroupCollapsed] = useState(true);
+    const [selectedGeneralValues, setSelectedGeneralValues] =
+        useState(initialGeneralValues);
+    const [selectedPeriodValues, setSelectedPeriodValues] =
+        useState(initialPeriodValues);
+    const [isLastPanelGroupCollapsed, setIsLastPanelGroupCollapsed] =
+        useState(true);
+
+    const requestParameters = {
+        ticker: selectedGeneralValues[0].split(" ")[0],
+        from_data: "2023-05-01",
+        till_date: "2024-02-01",
+    };
 
     const toggleCollapse = () => {
         setIsCollapsed(!isCollapsed);
@@ -36,7 +45,8 @@ function GraphBlock() {
     return (
         <div
             className={`fixed bg-background-block rounded-[40px] pt-5 ${
-                isCollapsed ? "top-8 left-8 right-8" : "inset-8"} flex flex-col overflow-hidden
+                isCollapsed ? "top-8 left-8 right-8" : "inset-8"
+            } flex flex-col overflow-hidden
                 ${isPanelCollapsed ? "gap-5" : "gap-[6px]"}`}
         >
             <GraphBlockHeader
@@ -46,13 +56,23 @@ function GraphBlock() {
             ></GraphBlockHeader>
             {!isCollapsed && (
                 <div
-                    className={`flex-1 flex flex-col pl-8 pr-8 pb-8 ${isLastPanelGroupCollapsed ? "gap-[18px]" : "gap-8"}`}>
-                    {!isPanelCollapsed && <Panel
-                        onGeneralChange={handleGeneralChange}
-                        onPeriodChange={handlePeriodChange}
-                        onLastPanelGroupChange={handleLastPanelGroupCollapseChange}
-                    ></Panel>}
-                    <Graph></Graph>
+                    className={`flex-1 flex flex-col pl-8 pr-8 pb-8 ${
+                        isLastPanelGroupCollapsed ? "gap-[18px]" : "gap-8"
+                    }`}
+                >
+                    {!isPanelCollapsed && (
+                        <Panel
+                            onGeneralChange={handleGeneralChange}
+                            onPeriodChange={handlePeriodChange}
+                            onLastPanelGroupChange={
+                                handleLastPanelGroupCollapseChange
+                            }
+                        ></Panel>
+                    )}
+                    <Graph
+                        selectedGeneralValues={selectedGeneralValues}
+                        requestParameters={requestParameters}
+                    ></Graph>
                 </div>
             )}
         </div>
