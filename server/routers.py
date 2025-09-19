@@ -17,6 +17,7 @@ async def get_all_data(req_parameters: RequestParameters):
     print(req_parameters)
     return api_data.getFutoi(
         req_parameters.ticker,
+        participant_type=req_parameters.participant_type,
         from_data=req_parameters.from_data,
         till_date=req_parameters.till_date
     ).to_dict(orient="records")

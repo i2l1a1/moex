@@ -11,10 +11,17 @@ function GraphBlockHeader({onCollapseClick, onTogglePanelClick, isCollapsed, req
         return `${date_raw[2]}.${date_raw[1]}.${date_raw[0]}`;
     }
 
+    function format_participant_type(participant_type) {
+        if (participant_type === "FIZ") return "Individuals";
+        if (participant_type === "YUR") return "Companies";
+        return "Individuals & Companies";
+    }
+
     return (
         <div className={`flex justify-between items-center ml-8 mr-[18px] ${isCollapsed ? "mb-5" : ""}`}>
             <ElementHorizontalList gap_class={"gap-1"}>
-                <TextForGraphBlockHeader graph_header={`${requestParameters.ticker} · ${format_date(requestParameters.from_data)}–${format_date(requestParameters.till_date)}`}></TextForGraphBlockHeader>
+                <TextForGraphBlockHeader
+                    graph_header={`${requestParameters.ticker} · ${format_date(requestParameters.from_data)}–${format_date(requestParameters.till_date)} · ${format_participant_type(requestParameters.participant_type)}`}></TextForGraphBlockHeader>
                 <button onClick={onCollapseClick}>
                     <img className={`transition-transform duration-200 ${isCollapsed ? "-rotate-90" : ""}`}
                          src="collapse_graph.svg" alt="collapse graph"/>

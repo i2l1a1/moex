@@ -16,8 +16,15 @@ function GraphBlock() {
     const [isLastPanelGroupCollapsed, setIsLastPanelGroupCollapsed] =
         useState(true);
 
+    function format_participant_type(participant_type) {
+        if (participant_type === "Individuals") return "FIZ";
+        if (participant_type === "Companies") return "YUR";
+        return "";
+    }
+
     const requestParameters = {
         ticker: selectedGeneralValues.ticker.split(" ")[0],
+        participant_type: format_participant_type(selectedGeneralValues.participantTypes),
         from_data: selectedPeriodValues.from,
         till_date: selectedPeriodValues.till,
     };
