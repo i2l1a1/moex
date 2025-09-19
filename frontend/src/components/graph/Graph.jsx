@@ -48,8 +48,6 @@ function Graph({requestParameters}) {
         processedData = Object.values(processedData);
     }
 
-    console.log(loading);
-
     if (loading) return <div>Loading...</div>;
     if (error) return <div>Error: {error.message}</div>;
 

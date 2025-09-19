@@ -18,8 +18,8 @@ function GraphBlock() {
 
     const requestParameters = {
         ticker: selectedGeneralValues.ticker.split(" ")[0],
-        from_data: "2023-05-01",
-        till_date: "2024-02-01",
+        from_data: selectedPeriodValues.from,
+        till_date: selectedPeriodValues.till,
     };
 
     const toggleCollapse = () => {

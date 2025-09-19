@@ -1,38 +1,31 @@
 import ElementHorizontalList from "../../additional_components/ElementHorizontalList.jsx";
-import {periodOptions} from "./periodDefaults.js";
 
 function ControllerListPeriod({onSelectPeriod, selectedPeriodValues}) {
-    const handleDropdownSelect = (index, value) => {
-        const newSelectedValues = [...selectedPeriodValues];
-        newSelectedValues[index] = value;
+    const handleDropdownSelect = (type, value) => {
+        const newSelectedValues = {...selectedPeriodValues};
+        newSelectedValues[type] = value;
         onSelectPeriod(newSelectedValues);
     };
 
     return (
         <div>
-            <ElementHorizontalList gap_class={"gap-4"}>
-                {selectedPeriodValues.map((value, index) => (
-                    <select
-                        key={index}
-                        value={value}
-                        onChange={(e) =>
-                            handleDropdownSelect(index, e.target.value)
-                        }
-                        className="w-[280px] h-[36px] pr-4 pl-[14px] text-main-text text-button-text transition bg-drop-down rounded-[15px] overflow-y-auto max-h-[200px] appearance-none"
-                        style={{
-                            backgroundImage: `url('expand_dropdown.svg')`,
-                            backgroundRepeat: "no-repeat",
-                            backgroundPosition: "right 14px center",
-                            backgroundSize: "16px",
-                        }}
-                    >
-                        {periodOptions[index].map((option) => (
-                            <option key={option} value={option}>
-                                {option}
-                            </option>
-                        ))}
-                    </select>
-                ))}
+            <ElementHorizontalList gap_class={"gap-1"}>
+                <input
+                    value={selectedPeriodValues.from}
+                    onChange={(e) =>
+                        handleDropdownSelect("from", e.target.value)
+                    }
+                    className="input_from_user hide_calendar" type="date"
+                />
+                <span className="text-lite-gray text-button-text">–</span>
+                <input
+                    value={selectedPeriodValues.till}
+                    onChange={(e) =>
+                        handleDropdownSelect("till", e.target.value)
+                    }
+                    className="input_from_user hide_calendar"
+                    type="date"
+                />
             </ElementHorizontalList>
         </div>
     );
