@@ -61,20 +61,20 @@ export const generalOptions = {
         'MY Индекс МосБиржи в юанях',
         'HS Hong Kong ETF'
     ],
-    select2: [
-        "Option 2", "Option 3", "Option 10", "Option 666"
-    ],
-    select3: [
-        "Option -100", "Option 11"
-    ],
-    select4: [
-        "Option 302", "Option 324uo4"
-    ]
+    // select2: [
+    //     "Option 2", "Option 3", "Option 10", "Option 666"
+    // ],
+    // select3: [
+    //     "Option -100", "Option 11"
+    // ],
+    // select4: [
+    //     "Option 302", "Option 324uo4"
+    // ]
 };
 
 export const initialGeneralValues = {
     ticker: "Si курс доллар США-российский рубль",
-    select2: "Option 2",
-    select3: "Option -100",
-    select4: "Option 302"
+    // select2: "Option 2",
+    // select3: "Option -100",
+    // select4: "Option 302"
 };

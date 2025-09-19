@@ -53,6 +53,7 @@ function GraphBlock() {
                 onCollapseClick={toggleCollapse}
                 onTogglePanelClick={togglePanel}
                 isCollapsed={isCollapsed}
+                requestParameters={requestParameters}
             ></GraphBlockHeader>
             {!isCollapsed && (
                 <div

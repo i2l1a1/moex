@@ -1,8 +1,8 @@
 import ElementHorizontalList from "../../additional_components/ElementHorizontalList.jsx";
 
-function ControllerListPeriod({onSelectPeriod, selectedPeriodValues}) {
+function ControllerListPeriod({ onSelectPeriod, selectedPeriodValues }) {
     const handleDropdownSelect = (type, value) => {
-        const newSelectedValues = {...selectedPeriodValues};
+        const newSelectedValues = { ...selectedPeriodValues };
         newSelectedValues[type] = value;
         onSelectPeriod(newSelectedValues);
     };
@@ -15,7 +15,8 @@ function ControllerListPeriod({onSelectPeriod, selectedPeriodValues}) {
                     onChange={(e) =>
                         handleDropdownSelect("from", e.target.value)
                     }
-                    className="input_from_user hide_calendar" type="date"
+                    className="input_from_user hide_calendar"
+                    type="date"
                 />
                 <span className="text-lite-gray text-button-text">–</span>
                 <input
