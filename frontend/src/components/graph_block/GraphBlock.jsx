@@ -65,26 +65,24 @@ function GraphBlock() {
                 isCollapsed={isCollapsed}
                 requestParameters={requestParameters}
             ></GraphBlockHeader>
-            {!isCollapsed && (
-                <div
-                    className={`flex-1 flex flex-col pl-8 pr-8 pb-8 ${
-                        isLastPanelGroupCollapsed ? "gap-[18px]" : "gap-8"
-                    }`}
-                >
-                    {!isPanelCollapsed && (
-                        <Panel
-                            onGeneralChange={handleGeneralChange}
-                            onPeriodChange={handlePeriodChange}
-                            onLastPanelGroupChange={
-                                handleLastPanelGroupCollapseChange
-                            }
-                            selectedGeneralValues={selectedGeneralValues}
-                            selectedPeriodValues={selectedPeriodValues}
-                        ></Panel>
-                    )}
-                    <Graph requestParameters={requestParameters}></Graph>
-                </div>
-            )}
+            <div
+                className={`flex-1 flex flex-col pl-8 pr-8 pb-8 ${
+                    isLastPanelGroupCollapsed ? "gap-[18px]" : "gap-8"
+                } ${isCollapsed ? "hidden" : ""}`}
+            >
+                {!isPanelCollapsed && (
+                    <Panel
+                        onGeneralChange={handleGeneralChange}
+                        onPeriodChange={handlePeriodChange}
+                        onLastPanelGroupChange={
+                            handleLastPanelGroupCollapseChange
+                        }
+                        selectedGeneralValues={selectedGeneralValues}
+                        selectedPeriodValues={selectedPeriodValues}
+                    ></Panel>
+                )}
+                <Graph requestParameters={requestParameters}></Graph>
+            </div>
         </div>
     );
 }
