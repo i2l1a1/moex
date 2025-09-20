@@ -14,7 +14,7 @@
 @layer components {
     .input_from_user {
         @apply w-[280px] h-[36px] pr-4 pl-[14px] text-main-text text-button-text transition bg-drop-down rounded-[15px]
-        overflow-y-auto max-h-[200px];
+        overflow-y-auto max-h-[200px] focus:outline-none;
     }
 
     .hide_calendar {
@@ -22,3 +22,11 @@
     }
 }
 
+select:focus {
+    outline: none !important;
+}
+
+div:focus,
+svg:focus {
+    outline: none !important;
+}
