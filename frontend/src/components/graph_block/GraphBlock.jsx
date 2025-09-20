@@ -1,6 +1,6 @@
 import "../../App.css";
 import GraphBlockHeader from "./GraphBlockHeader.jsx";
-import {useState} from "react";
+import {useState, useMemo} from "react";
 import Panel from "../panel/Panel.jsx";
 import {initialGeneralValues} from "../panel/controller_lists/generalDefaults.js";
 import {initialPeriodValues} from "../panel/controller_lists/periodDefaults.js";
@@ -22,12 +22,15 @@ function GraphBlock() {
         return "";
     }
 
-    const requestParameters = {
-        ticker: selectedGeneralValues.ticker.split(" ")[0],
-        participant_type: format_participant_type(selectedGeneralValues.participantTypes),
-        from_data: selectedPeriodValues.from,
-        till_date: selectedPeriodValues.till,
-    };
+    const requestParameters = useMemo(
+        () => ({
+            ticker: selectedGeneralValues.ticker.split(" ")[0],
+            participant_type: format_participant_type(selectedGeneralValues.participantTypes),
+            from_data: selectedPeriodValues.from,
+            till_date: selectedPeriodValues.till,
+        }),
+        [selectedGeneralValues, selectedPeriodValues]
+    );
 
     const toggleCollapse = () => {
         setIsCollapsed(!isCollapsed);
