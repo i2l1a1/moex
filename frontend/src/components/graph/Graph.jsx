@@ -48,8 +48,12 @@ function Graph({requestParameters}) {
         processedData = Object.values(processedData);
     }
 
-    if (loading) return <div>Loading...</div>;
-    if (error) return <div>Error: {error.message}</div>;
+    if (loading) return (
+        <div className="loading_and_error_message text-gray">Loading...</div>
+    );
+    if (error) return (
+        <div className="loading_and_error_message text-error">An error occurred. Please try again later.</div>
+    );
 
     return (
         <ResponsiveContainer className="w-full flex-1">

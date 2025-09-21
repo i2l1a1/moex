@@ -7,6 +7,8 @@
     --color-drop-down: #16171F;
     --color-drop-down-hover-item: #1C1D27;
     --color-lite-gray: #5E666E;
+    --color-gray: #3A3F45;
+    --color-error: #952D24;
 
     --text-button-text: 14px;
 }
@@ -19,6 +21,10 @@
 
     .hide_calendar {
         @apply overflow-y-auto max-h-[200px] appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::--moz-calendar-picker-indicator]:hidden;
+    }
+
+    .loading_and_error_message {
+        @apply flex items-center justify-center w-full h-full text-center text-[17px];
     }
 }
 
