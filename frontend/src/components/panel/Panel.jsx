@@ -4,12 +4,15 @@ import PanelTabInterior from "./PanelTabInterior.jsx";
 import ControllerListGeneral from "./controller_lists/ControllerListGeneral.jsx";
 import ControllerListPeriod from "./controller_lists/ControllerListPeriod.jsx";
 import ElementHorizontalList from "../additional_components/ElementHorizontalList.jsx";
+import ControllerListCurves from "./controller_lists/ControllerListCurves.jsx";
 
 function Panel({
                    onGeneralChange,
                    onPeriodChange,
+                   onCurvesChange,
                    selectedGeneralValues,
                    selectedPeriodValues,
+                   selectedCurveValues,
                    activePanelTab,
                    setActivePanelTab
                }) {
@@ -21,12 +24,20 @@ function Panel({
         setActivePanelTab("period");
     };
 
+    const toggleCollapseCurvesTab = () => {
+        setActivePanelTab("curves");
+    };
+
     const handleGeneralSelect = (values) => {
         onGeneralChange(values);
     };
 
     const handlePeriodSelect = (values) => {
         onPeriodChange(values);
+    };
+
+    const handleCurvesSelect = (values) => {
+        onCurvesChange(values);
     };
 
     return (
@@ -41,6 +52,11 @@ function Panel({
                     onCollapseClick={toggleCollapsePeriodTab}
                     isCollapsed={activePanelTab !== "period"}
                     panel_tab={"Period"}
+                ></PanelTab>
+                <PanelTab
+                    onCollapseClick={toggleCollapseCurvesTab}
+                    isCollapsed={activePanelTab !== "curves"}
+                    panel_tab={"Curves"}
                 ></PanelTab>
             </ElementHorizontalList>
 
@@ -62,6 +78,17 @@ function Panel({
                             onSelectPeriod={handlePeriodSelect}
                             selectedPeriodValues={selectedPeriodValues}
                         ></ControllerListPeriod>
+                    }
+                </PanelTabInterior>
+            )}
+
+            {activePanelTab === "curves" && (
+                <PanelTabInterior isCollapsed={false}>
+                    {
+                        <ControllerListCurves
+                            onSelectCurves={handleCurvesSelect}
+                            selectedCurveValues={selectedCurveValues}
+                        ></ControllerListCurves>
                     }
                 </PanelTabInterior>
             )}

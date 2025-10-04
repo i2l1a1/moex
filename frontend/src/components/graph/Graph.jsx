@@ -12,7 +12,46 @@ import {
 } from "recharts";
 import useFetch from "../../hooks/useFetch.jsx";
 
-function Graph({requestParameters}) {
+const curveMapping = {
+    Liquidity: {
+        dataKey: "FIZ_pos_long",
+        stroke: "#2751A5",
+        name: "FIZ Long",
+        yAxisId: "pos",
+    },
+    "Risk Premium": {
+        dataKey: "YUR_pos_long",
+        stroke: "#CF504A",
+        name: "YUR Long",
+        yAxisId: "pos",
+    },
+    "Yield Dynamics": {
+        dataKey: "YUR_pos_short_num",
+        stroke: "#48CF82",
+        name: "YUR Short Num",
+        yAxisId: "num",
+    },
+    Volatility: {
+        dataKey: "FIZ_pos_short",
+        stroke: "#FFC658",
+        name: "FIZ Short",
+        yAxisId: "pos",
+    },
+    "Investment Horizon": {
+        dataKey: "FIZ_pos_long_num",
+        stroke: "#8884d8",
+        name: "FIZ Long Num",
+        yAxisId: "num",
+    },
+    "Asset Correlation": {
+        dataKey: "YUR_pos_long_num",
+        stroke: "#82ca9d",
+        name: "YUR Long Num",
+        yAxisId: "pos",
+    },
+};
+
+function Graph({requestParameters, selectedCurvesToRender}) {
     const {data, loading, error} = useFetch(
         "http://127.0.0.1:9091/get_all_data",
         requestParameters
@@ -95,32 +134,25 @@ function Graph({requestParameters}) {
                         // position: "insideRight",
                     }}
                 />
-                <Tooltip animationDuration={0}/>
+                <Tooltip content={<CustomTooltip/>}/>
                 <Legend/>
-                <Line
-                    yAxisId="pos"
-                    type="linear"
-                    dataKey="FIZ_pos_long"
-                    stroke="#2751A5"
-                    name="FIZ Long"
-                    dot={false}
-                />
-                <Line
-                    yAxisId="pos"
-                    type="linear"
-                    dataKey="YUR_pos_long"
-                    stroke="#CF504A"
-                    name="YUR Long"
-                    dot={false}
-                />
-                <Line
-                    yAxisId="num"
-                    type="linear"
-                    dataKey="YUR_pos_short_num"
-                    stroke="#48CF82"
-                    name="YUR Short Num"
-                    dot={false}
-                />
+                {selectedCurvesToRender.map((curveName) => {
+                    const curveInfo = curveMapping[curveName];
+                    if (curveInfo) {
+                        return (
+                            <Line
+                                key={curveName}
+                                yAxisId={curveInfo.yAxisId}
+                                type="linear"
+                                dataKey={curveInfo.dataKey}
+                                stroke={curveInfo.stroke}
+                                name={curveInfo.name}
+                                dot={false}
+                            />
+                        );
+                    }
+                    return null;
+                })}
             </LineChart>
         </ResponsiveContainer>
     );
@@ -131,17 +163,19 @@ const CustomTooltip = ({active, payload, label}) => {
         return (
             <div className="p-4 bg-slate-900 flex flex-col gap-4 rounded-md">
                 <p className="text-medium text-lg">{label}</p>
-                <p className="text-sm text-blue-400">
-                    Product 1:
-                    <span className="ml-2">${payload[0].value}</span>
-                </p>
-                <p className="text-sm text-indigo-400">
-                    Product 2:
-                    <span className="ml-2">${payload[1].value}</span>
-                </p>
+                {payload.map((entry, index) => (
+                    <p
+                        key={`item-${index}`}
+                        className="text-sm"
+                        style={{color: entry.stroke}}
+                    >
+                        {entry.name}:<span className="ml-2">{entry.value}</span>
+                    </p>
+                ))}
             </div>
         );
     }
+    return null;
 };
 
 export default React.memo(Graph);

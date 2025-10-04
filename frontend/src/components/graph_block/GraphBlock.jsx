@@ -5,6 +5,7 @@ import Panel from "../panel/Panel.jsx";
 import {initialGeneralValues} from "../panel/controller_lists/generalDefaults.js";
 import {initialPeriodValues} from "../panel/controller_lists/periodDefaults.js";
 import Graph from "../graph/Graph.jsx";
+import {initialCurveValues} from "../panel/controller_lists/curveDefaults.js";
 
 function GraphBlock() {
     const [isCollapsed, setIsCollapsed] = useState(false);
@@ -13,6 +14,8 @@ function GraphBlock() {
         useState(initialGeneralValues);
     const [selectedPeriodValues, setSelectedPeriodValues] =
         useState(initialPeriodValues);
+    const [selectedCurveValues, setSelectedCurveValues] =
+        useState(initialCurveValues);
     const [activePanelTab, setActivePanelTab] = useState("general");
 
     function format_participant_type(participant_type) {
@@ -47,6 +50,10 @@ function GraphBlock() {
         setSelectedPeriodValues(values);
     };
 
+    const handleCurveChange = (values) => {
+        setSelectedCurveValues(values);
+    };
+
     return (
         <div
             className={`fixed bg-background-block rounded-[40px] pt-5 ${
@@ -67,13 +74,18 @@ function GraphBlock() {
                     <Panel
                         onGeneralChange={handleGeneralChange}
                         onPeriodChange={handlePeriodChange}
+                        onCurvesChange={handleCurveChange}
                         selectedGeneralValues={selectedGeneralValues}
                         selectedPeriodValues={selectedPeriodValues}
+                        selectedCurveValues={selectedCurveValues}
                         activePanelTab={activePanelTab}
                         setActivePanelTab={setActivePanelTab}
                     ></Panel>
                 )}
-                <Graph requestParameters={requestParameters}></Graph>
+                <Graph
+                    requestParameters={requestParameters}
+                    selectedCurvesToRender={selectedCurveValues.curves}
+                ></Graph>
             </div>
         </div>
     );
