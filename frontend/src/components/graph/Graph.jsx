@@ -13,40 +13,52 @@ import {
 import useFetch from "../../hooks/useFetch.jsx";
 
 const curveMapping = {
-    Liquidity: {
-        dataKey: "FIZ_pos_long",
+    FIZ_pos: {
+        dataKey: "FIZ_pos",
         stroke: "#2751A5",
-        name: "FIZ Long",
+        name: "FIZ_pos",
         yAxisId: "pos",
     },
-    "Risk Premium": {
-        dataKey: "YUR_pos_long",
+    YUR_pos: {
+        dataKey: "YUR_pos",
         stroke: "#CF504A",
-        name: "YUR Long",
+        name: "YUR_pos",
         yAxisId: "pos",
     },
-    "Yield Dynamics": {
+    FIZ_pos_long: {
+        dataKey: "FIZ_pos_long",
+        stroke: "#a5276e",
+        name: "FIZ_pos_long",
+        yAxisId: "pos",
+    },
+    YUR_pos_long: {
+        dataKey: "YUR_pos_long",
+        stroke: "#6827a5",
+        name: "YUR_pos_long",
+        yAxisId: "pos",
+    },
+    YUR_pos_short_num: {
         dataKey: "YUR_pos_short_num",
         stroke: "#48CF82",
-        name: "YUR Short Num",
+        name: "YUR_pos_short_num",
         yAxisId: "num",
     },
-    Volatility: {
+    FIZ_pos_short: {
         dataKey: "FIZ_pos_short",
         stroke: "#FFC658",
-        name: "FIZ Short",
+        name: "FIZ_pos_short",
         yAxisId: "pos",
     },
-    "Investment Horizon": {
+    FIZ_pos_long_num: {
         dataKey: "FIZ_pos_long_num",
         stroke: "#8884d8",
-        name: "FIZ Long Num",
+        name: "FIZ_pos_long_num",
         yAxisId: "num",
     },
-    "Asset Correlation": {
+    YUR_pos_long_num: {
         dataKey: "YUR_pos_long_num",
         stroke: "#82ca9d",
-        name: "YUR Long Num",
+        name: "YUR_pos_long_num",
         yAxisId: "pos",
     },
 };
@@ -59,10 +71,12 @@ function Graph({requestParameters, selectedCurvesToRender}) {
 
     let processedData = {};
     if (data) {
+        console.log(data);
         data.forEach((item) => {
             const {
                 tradedate,
                 clgroup,
+                pos,
                 pos_long,
                 pos_short,
                 pos_long_num,
@@ -73,12 +87,13 @@ function Graph({requestParameters, selectedCurvesToRender}) {
                 processedData[tradedate] = {tradedate: tradedate};
             }
             if (clgroup === "FIZ") {
+                processedData[tradedate].FIZ_pos = pos;
                 processedData[tradedate].FIZ_pos_long = pos_long;
                 processedData[tradedate].FIZ_pos_short = pos_short;
                 processedData[tradedate].FIZ_pos_long_num = pos_long_num;
                 processedData[tradedate].FIZ_pos_short_num = pos_short_num;
             } else if (clgroup === "YUR") {
-                processedData[tradedate].YUR_pos_long = pos_long;
+                processedData[tradedate].YUR_pos = pos;
                 processedData[tradedate].YUR_pos_short = pos_short;
                 processedData[tradedate].YUR_pos_long_num = pos_long_num;
                 processedData[tradedate].YUR_pos_short_num = pos_short_num;

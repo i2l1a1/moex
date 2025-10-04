@@ -1,10 +1,11 @@
-import '../../App.css'
+import "../../App.css";
 
-function ElementHorizontalList({children, gap_class}) {
+function ElementHorizontalList({ children, gap_class }) {
     return (
-        <div className={`flex ${gap_class} items-center`}>
+        <div className={`flex flex-wrap ${gap_class} items-center`}>
             {children}
-        </div>);
+        </div>
+    );
 }
 
 export default ElementHorizontalList;

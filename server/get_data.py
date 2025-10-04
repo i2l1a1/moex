@@ -24,5 +24,6 @@ class GetDataFromAPI:
         if participant_type:
             df = df[df['clgroup'] == participant_type]
             print(df.shape)
+        print(df.to_string())
 
         return df
