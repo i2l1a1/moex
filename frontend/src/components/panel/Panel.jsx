@@ -1,23 +1,24 @@
 import "../../App.css";
-import PanelGroup from "./PanelGroup.jsx";
-import {useState} from "react";
-import PanelGroupInterior from "./PanelGroupInterior.jsx";
+import PanelTab from "./PanelTab.jsx";
+import PanelTabInterior from "./PanelTabInterior.jsx";
 import ControllerListGeneral from "./controller_lists/ControllerListGeneral.jsx";
 import ControllerListPeriod from "./controller_lists/ControllerListPeriod.jsx";
+import ElementHorizontalList from "../additional_components/ElementHorizontalList.jsx";
 
-function Panel({onGeneralChange, onPeriodChange, onLastPanelGroupChange, selectedGeneralValues, selectedPeriodValues}) {
-    const [isCollapsedGeneralGroup, setIsCollapsedGeneralGroup] =
-        useState(true);
-    const [isCollapsedPeriodGroup, setIsCollapsedPeriodGroup] = useState(true);
-
-    const toggleCollapseGeneralGroup = () => {
-        setIsCollapsedGeneralGroup(!isCollapsedGeneralGroup);
+function Panel({
+                   onGeneralChange,
+                   onPeriodChange,
+                   selectedGeneralValues,
+                   selectedPeriodValues,
+                   activePanelTab,
+                   setActivePanelTab
+               }) {
+    const toggleCollapseGeneralTab = () => {
+        setActivePanelTab("general");
     };
 
-    const toggleCollapsePeriodGroup = () => {
-        const newState = !isCollapsedPeriodGroup;
-        setIsCollapsedPeriodGroup(newState);
-        onLastPanelGroupChange(newState);
+    const toggleCollapsePeriodTab = () => {
+        setActivePanelTab("period");
     };
 
     const handleGeneralSelect = (values) => {
@@ -29,34 +30,41 @@ function Panel({onGeneralChange, onPeriodChange, onLastPanelGroupChange, selecte
     };
 
     return (
-        <div className="flex flex-col -ml-4">
-            <PanelGroup onCollapseClick={toggleCollapseGeneralGroup}
-                        isCollapsed={isCollapsedGeneralGroup}
-                        panel_group={"General"}
-            >
-                <PanelGroupInterior isCollapsed={isCollapsedGeneralGroup}>
+        <div className="flex flex-col ml-4 mt-2">
+            <ElementHorizontalList gap_class={"gap-8"}>
+                <PanelTab
+                    onCollapseClick={toggleCollapseGeneralTab}
+                    isCollapsed={activePanelTab !== "general"}
+                    panel_tab={"General"}
+                ></PanelTab>
+                <PanelTab
+                    onCollapseClick={toggleCollapsePeriodTab}
+                    isCollapsed={activePanelTab !== "period"}
+                    panel_tab={"Period"}
+                ></PanelTab>
+            </ElementHorizontalList>
+
+            {activePanelTab === "general" && (
+                <PanelTabInterior isCollapsed={false}>
                     {
                         <ControllerListGeneral
                             onSelectGeneral={handleGeneralSelect}
                             selectedGeneralValues={selectedGeneralValues}
                         ></ControllerListGeneral>
                     }
-                </PanelGroupInterior>
-            </PanelGroup>
-            <PanelGroup
-                onCollapseClick={toggleCollapsePeriodGroup}
-                isCollapsed={isCollapsedPeriodGroup}
-                panel_group={"Period"}
-            >
-                <PanelGroupInterior isCollapsed={isCollapsedPeriodGroup}>
+                </PanelTabInterior>
+            )}
+
+            {activePanelTab === "period" && (
+                <PanelTabInterior isCollapsed={false}>
                     {
                         <ControllerListPeriod
                             onSelectPeriod={handlePeriodSelect}
                             selectedPeriodValues={selectedPeriodValues}
                         ></ControllerListPeriod>
                     }
-                </PanelGroupInterior>
-            </PanelGroup>
+                </PanelTabInterior>
+            )}
         </div>
     );
 }

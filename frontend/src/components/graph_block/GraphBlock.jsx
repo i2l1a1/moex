@@ -13,8 +13,7 @@ function GraphBlock() {
         useState(initialGeneralValues);
     const [selectedPeriodValues, setSelectedPeriodValues] =
         useState(initialPeriodValues);
-    const [isLastPanelGroupCollapsed, setIsLastPanelGroupCollapsed] =
-        useState(true);
+    const [activePanelTab, setActivePanelTab] = useState("general");
 
     function format_participant_type(participant_type) {
         if (participant_type === "Individuals") return "FIZ";
@@ -48,10 +47,6 @@ function GraphBlock() {
         setSelectedPeriodValues(values);
     };
 
-    const handleLastPanelGroupCollapseChange = (value) => {
-        setIsLastPanelGroupCollapsed(value);
-    };
-
     return (
         <div
             className={`fixed bg-background-block rounded-[40px] pt-5 ${
@@ -66,19 +61,16 @@ function GraphBlock() {
                 requestParameters={requestParameters}
             ></GraphBlockHeader>
             <div
-                className={`flex-1 flex flex-col pl-8 pr-8 pb-8 ${
-                    isLastPanelGroupCollapsed ? "gap-[18px]" : "gap-8"
-                } ${isCollapsed ? "hidden" : ""}`}
+                className={`flex-1 flex flex-col pl-8 pr-8 pb-8 gap-8 ${isCollapsed ? "hidden" : ""}`}
             >
                 {!isPanelCollapsed && (
                     <Panel
                         onGeneralChange={handleGeneralChange}
                         onPeriodChange={handlePeriodChange}
-                        onLastPanelGroupChange={
-                            handleLastPanelGroupCollapseChange
-                        }
                         selectedGeneralValues={selectedGeneralValues}
                         selectedPeriodValues={selectedPeriodValues}
+                        activePanelTab={activePanelTab}
+                        setActivePanelTab={setActivePanelTab}
                     ></Panel>
                 )}
                 <Graph requestParameters={requestParameters}></Graph>

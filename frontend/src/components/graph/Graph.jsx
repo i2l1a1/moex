@@ -1,3 +1,4 @@
+import React from "react";
 import "../../App.css";
 import {
     CartesianGrid,
@@ -59,50 +60,46 @@ function Graph({requestParameters}) {
         <ResponsiveContainer className="w-full flex-1">
             <LineChart
                 data={processedData}
-                margin={{
-                    top: 5,
-                    right: 30,
-                    left: 20,
-                    bottom: 5,
-                }}
             >
-                <CartesianGrid strokeDasharray="3 3"/>
+                <CartesianGrid stroke="#1B1D28" strokeDasharray="2 2"/>
                 <XAxis
                     dataKey="tradedate"
-                    angle={-45}
-                    textAnchor="end"
-                    height={80}
-                    interval="preserveStartEnd"
-                    tickFormatter={(tick) => {
-                        const date = new Date(tick);
-                        return date.toLocaleString("ru-RU", {
-                            month: "short",
-                            year: "numeric",
-                        });
-                    }}
+                    // angle={-45}
+                    // textAnchor="end"
+                    // height={80}
+                    // interval="preserveStartEnd"
+                    // tickFormatter={(tick) => {
+                    //     const date = new Date(tick);
+                    //     console.log(date)
+                    //     return date.toLocaleString("us-US", {
+                    //         month: "short",
+                    //         year: "numeric",
+                    //     });
+                    // }}
                 />
                 <YAxis
                     yAxisId="num"
                     label={{
                         value: "Количество контрактов",
                         angle: -90,
-                        position: "insideLeft",
+                        position: "outsideMiddle",
                     }}
                 />
                 <YAxis
                     yAxisId="pos"
                     orientation="right"
+                    tickMargin={8}
                     label={{
                         value: "Цена",
                         angle: 90,
-                        position: "insideRight",
+                        // position: "insideRight",
                     }}
                 />
-                <Tooltip/>
+                <Tooltip animationDuration={0}/>
                 <Legend/>
                 <Line
                     yAxisId="pos"
-                    type="monotone"
+                    type="linear"
                     dataKey="FIZ_pos_long"
                     stroke="#2751A5"
                     name="FIZ Long"
@@ -110,7 +107,7 @@ function Graph({requestParameters}) {
                 />
                 <Line
                     yAxisId="pos"
-                    type="monotone"
+                    type="linear"
                     dataKey="YUR_pos_long"
                     stroke="#CF504A"
                     name="YUR Long"
@@ -118,7 +115,7 @@ function Graph({requestParameters}) {
                 />
                 <Line
                     yAxisId="num"
-                    type="monotone"
+                    type="linear"
                     dataKey="YUR_pos_short_num"
                     stroke="#48CF82"
                     name="YUR Short Num"
@@ -129,4 +126,22 @@ function Graph({requestParameters}) {
     );
 }
 
-export default Graph;
+const CustomTooltip = ({active, payload, label}) => {
+    if (active && payload && payload.length) {
+        return (
+            <div className="p-4 bg-slate-900 flex flex-col gap-4 rounded-md">
+                <p className="text-medium text-lg">{label}</p>
+                <p className="text-sm text-blue-400">
+                    Product 1:
+                    <span className="ml-2">${payload[0].value}</span>
+                </p>
+                <p className="text-sm text-indigo-400">
+                    Product 2:
+                    <span className="ml-2">${payload[1].value}</span>
+                </p>
+            </div>
+        );
+    }
+};
+
+export default React.memo(Graph);

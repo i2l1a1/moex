@@ -3,12 +3,13 @@
 @theme {
     --color-background: #060911;
     --color-background-block: #111219;
-    --color-main-text: #AFB7C9;
-    --color-drop-down: #16171F;
-    --color-drop-down-hover-item: #1C1D27;
-    --color-lite-gray: #5E666E;
-    --color-gray: #3A3F45;
-    --color-error: #952D24;
+    --color-main-text: #bac1d1;
+    --color-drop-down: #16171f;
+    --color-drop-down-hover-item: #1c1d27;
+    --color-lite-gray: #5e666e;
+    --color-gray: #3a3f45;
+    --color-error: #952d24;
+    --color-accent: #274896;
 
     --text-button-text: 14px;
 }
