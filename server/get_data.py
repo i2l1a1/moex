@@ -25,7 +25,8 @@ class GetDataFromAPI:
 
         df_main = pd.DataFrame(response_numbers.json()["futoi"]["data"],
                                columns=response_numbers.json()["futoi"]["columns"])[::-1]
-        df_costs = pd.DataFrame(response_costs['candles']['data'], columns=response_costs['candles']['columns'])[['close', 'begin']]
+        df_costs = pd.DataFrame(response_costs['candles']['data'], columns=response_costs['candles']['columns'])[
+            ['close', 'begin']]
         df_costs.columns = ['cost', 'tradedate']
 
         if participant_type:
@@ -35,6 +36,7 @@ class GetDataFromAPI:
         df_main['tradedate'] = pd.to_datetime(df_main['tradedate']).dt.date
         df_main = df_main.merge(df_costs[['tradedate', 'cost']], on='tradedate', how='left')
 
-        print(df_main.to_string())
+        if 'cost' in df_main.columns:
+            df_main = df_main[df_main['cost'].notna()].reset_index(drop=True)
 
         return df_main

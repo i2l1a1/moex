@@ -17,25 +17,25 @@ const curveMapping = {
         dataKey: "FIZ_pos",
         stroke: "#2751A5",
         name: "FIZ_pos",
-        yAxisId: "pos",
+        yAxisId: "num",
     },
     YUR_pos: {
         dataKey: "YUR_pos",
         stroke: "#CF504A",
         name: "YUR_pos",
-        yAxisId: "pos",
+        yAxisId: "num",
     },
     FIZ_pos_long: {
         dataKey: "FIZ_pos_long",
         stroke: "#a5276e",
         name: "FIZ_pos_long",
-        yAxisId: "pos",
+        yAxisId: "num",
     },
     YUR_pos_long: {
         dataKey: "YUR_pos_long",
         stroke: "#6827a5",
         name: "YUR_pos_long",
-        yAxisId: "pos",
+        yAxisId: "num",
     },
     YUR_pos_short_num: {
         dataKey: "YUR_pos_short_num",
@@ -47,7 +47,7 @@ const curveMapping = {
         dataKey: "FIZ_pos_short",
         stroke: "#FFC658",
         name: "FIZ_pos_short",
-        yAxisId: "pos",
+        yAxisId: "num",
     },
     FIZ_pos_long_num: {
         dataKey: "FIZ_pos_long_num",
@@ -59,9 +59,70 @@ const curveMapping = {
         dataKey: "YUR_pos_long_num",
         stroke: "#82ca9d",
         name: "YUR_pos_long_num",
-        yAxisId: "pos",
+        yAxisId: "num",
     },
 };
+
+// Кастомный тултип: показывает цену и выбранные метрики.
+// Также добавляет *_num поля (например FIZ_pos_long_num), даже если они не рисуются линиями.
+function CustomTooltip({active, payload, label, selectedCurves = []}) {
+    if (!active || !payload || payload.length === 0) return null;
+
+    // payload[0].payload содержит весь объект данных для точки (включая cost и *_num поля)
+    const point = payload[0].payload || {};
+
+    // Удобная функция форматирования чисел
+    const fmt = (v) => (v === null || v === undefined ? "-" : v);
+
+    return (
+        <div className="custom-tooltip" style={{background: "#0b0c10", padding: 10, borderRadius: 6, color: "#fff"}}>
+            <div style={{fontSize: 12, marginBottom: 6}}>{label}</div>
+
+            {/* Цена (правой оси) */}
+            <div style={{fontSize: 13}}>
+                <strong>Цена:</strong> {fmt(point.cost)}
+            </div>
+
+            <div style={{height: 6}}/>
+
+            {/* Для каждого выбранного кривого показываем его значение (если есть) */}
+            {selectedCurves.map((curveName) => {
+                // Значение основной метрики
+                const val = point[curveName];
+                // Возможные дополнительные *_num поля (long/short)
+                let numField = null;
+                if (curveName.endsWith("_long")) {
+                    numField = `${curveName}_num`; // e.g. FIZ_pos_long -> FIZ_pos_long_num
+                } else if (curveName.endsWith("_short")) {
+                    numField = `${curveName}_num`;
+                } else if (curveName.endsWith("_pos_long")) {
+                    numField = `${curveName}_num`;
+                }
+
+                return (
+                    <div key={curveName} style={{fontSize: 13, marginTop: 6}}>
+                        <div><strong>{curveName}:</strong> {fmt(val)}</div>
+                        {numField && point[numField] !== undefined && (
+                            <div style={{fontSize: 12, opacity: 0.85}}>({numField}: {fmt(point[numField])})</div>
+                        )}
+                    </div>
+                );
+            })}
+
+            {/* Кроме выбранных — если есть дополнительные *_num поля в данных, можно показать их тоже (необязательно) */}
+            {/* Пример: FIZ_pos_long_num или FIZ_pos_short_num */}
+            {["FIZ_pos_long_num", "FIZ_pos_short_num", "YUR_pos_long_num", "YUR_pos_short_num"].map((k) => {
+                if (selectedCurves.includes(k)) return null; // уже показано выше
+                if (point[k] === undefined) return null;
+                return (
+                    <div key={k} style={{fontSize: 12, marginTop: 6}}>
+                        <strong>{k}:</strong> {fmt(point[k])}
+                    </div>
+                );
+            })}
+        </div>
+    );
+}
 
 function Graph({requestParameters, selectedCurvesToRender}) {
     const {data, loading, error} = useFetch(
@@ -71,11 +132,11 @@ function Graph({requestParameters, selectedCurvesToRender}) {
 
     let processedData = {};
     if (data) {
-        console.log(data);
         data.forEach((item) => {
             const {
                 tradedate,
                 clgroup,
+                cost,
                 pos,
                 pos_long,
                 pos_short,
@@ -83,16 +144,23 @@ function Graph({requestParameters, selectedCurvesToRender}) {
                 pos_short_num,
             } = item;
 
+            // стандартный ключ — tradedate (строка "YYYY-MM-DD")
             if (!processedData[tradedate]) {
                 processedData[tradedate] = {tradedate: tradedate};
             }
+
+            // наполняем поля, придерживаясь твоей логики
             if (clgroup === "FIZ") {
+                // цена одна на дату — перезапись одинаковой цены не критична
+                processedData[tradedate].cost = cost;
                 processedData[tradedate].FIZ_pos = pos;
                 processedData[tradedate].FIZ_pos_long = pos_long;
                 processedData[tradedate].FIZ_pos_short = pos_short;
                 processedData[tradedate].FIZ_pos_long_num = pos_long_num;
                 processedData[tradedate].FIZ_pos_short_num = pos_short_num;
             } else if (clgroup === "YUR") {
+                // pos_long!!
+                processedData[tradedate].cost = cost;
                 processedData[tradedate].YUR_pos = pos;
                 processedData[tradedate].YUR_pos_short = pos_short;
                 processedData[tradedate].YUR_pos_long_num = pos_long_num;
@@ -101,7 +169,20 @@ function Graph({requestParameters, selectedCurvesToRender}) {
         });
 
         processedData = Object.values(processedData);
+
+        // Дополнительно: привести cost к числу (если нужно) и остальные поля к числам
+        processedData = processedData.map((row) => {
+            const r = {...row};
+            if (r.cost !== undefined) r.cost = Number(r.cost);
+            ["FIZ_pos", "FIZ_pos_long", "FIZ_pos_short", "FIZ_pos_long_num", "FIZ_pos_short_num",
+                "YUR_pos", "YUR_pos_long_num", "YUR_pos_short", "YUR_pos_short_num"].forEach((k) => {
+                if (r[k] !== undefined) r[k] = Number(r[k]);
+            });
+            return r;
+        });
     }
+
+    console.log(processedData);
 
     if (loading) return (
         <div className="loading_and_error_message text-gray">Loading...</div>
@@ -110,6 +191,9 @@ function Graph({requestParameters, selectedCurvesToRender}) {
         <div className="loading_and_error_message text-error">An error occurred. Please try again later.</div>
     );
 
+    // Решение: всегда отрисовываем линию price (cost) на правой оси,
+    // и отдельно рисуем линии для выбранных кривых (selectedCurvesToRender).
+    // Для тултипа передаём selectedCurvesToRender, чтобы показывать сопутствующие *_num поля.
     return (
         <ResponsiveContainer className="w-full flex-1">
             <LineChart
@@ -118,18 +202,6 @@ function Graph({requestParameters, selectedCurvesToRender}) {
                 <CartesianGrid stroke="#1B1D28" strokeDasharray="2 2"/>
                 <XAxis
                     dataKey="tradedate"
-                    // angle={-45}
-                    // textAnchor="end"
-                    // height={80}
-                    // interval="preserveStartEnd"
-                    // tickFormatter={(tick) => {
-                    //     const date = new Date(tick);
-                    //     console.log(date)
-                    //     return date.toLocaleString("us-US", {
-                    //         month: "short",
-                    //         year: "numeric",
-                    //     });
-                    // }}
                 />
                 <YAxis
                     yAxisId="num"
@@ -146,11 +218,25 @@ function Graph({requestParameters, selectedCurvesToRender}) {
                     label={{
                         value: "Цена",
                         angle: 90,
-                        // position: "insideRight",
                     }}
                 />
-                <Tooltip content={<CustomTooltip/>}/>
+
+                {/* Кастомный тултип: передаём выбранные кривые, чтобы он знал, что показывать */}
+                <Tooltip content={<CustomTooltip selectedCurves={selectedCurvesToRender}/>}/>
                 <Legend/>
+
+                {/* Линия цены (правый Y) — показываем всегда, чтобы была на графике */}
+                <Line
+                    key="cost"
+                    yAxisId="pos"
+                    type="linear"
+                    dataKey="cost"
+                    stroke="#888"
+                    name="Цена"
+                    dot={false}
+                />
+
+                {/* Рисуем выбранные кривые */}
                 {selectedCurvesToRender.map((curveName) => {
                     const curveInfo = curveMapping[curveName];
                     if (curveInfo) {
@@ -172,25 +258,5 @@ function Graph({requestParameters, selectedCurvesToRender}) {
         </ResponsiveContainer>
     );
 }
-
-const CustomTooltip = ({active, payload, label}) => {
-    if (active && payload && payload.length) {
-        return (
-            <div className="p-4 bg-slate-900 flex flex-col gap-4 rounded-md">
-                <p className="text-medium text-lg">{label}</p>
-                {payload.map((entry, index) => (
-                    <p
-                        key={`item-${index}`}
-                        className="text-sm"
-                        style={{color: entry.stroke}}
-                    >
-                        {entry.name}:<span className="ml-2">{entry.value}</span>
-                    </p>
-                ))}
-            </div>
-        );
-    }
-    return null;
-};
 
 export default React.memo(Graph);
