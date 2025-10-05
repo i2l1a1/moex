@@ -1,10 +1,10 @@
 from fastapi import APIRouter
-from get_data import GetDataFromAPI
+from get_data import FetchMoexData
 from schemas import RequestParameters
 
 router = APIRouter()
 
-api_data = GetDataFromAPI()
+moex_data = FetchMoexData()
 
 
 @router.get("/just_for_fun")
@@ -14,7 +14,7 @@ async def just_for_fun():
 
 @router.post("/get_all_data")
 async def get_all_data(req_parameters: RequestParameters):
-    return api_data.getFutoi(
+    return moex_data.fetchFutoiData(
         req_parameters.ticker,
         participant_type=req_parameters.participant_type,
         data_types=req_parameters.data_types,
