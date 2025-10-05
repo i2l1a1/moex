@@ -14,7 +14,6 @@ async def just_for_fun():
 
 @router.post("/get_all_data")
 async def get_all_data(req_parameters: RequestParameters):
-    print(req_parameters)
     return api_data.getFutoi(
         req_parameters.ticker,
         participant_type=req_parameters.participant_type,

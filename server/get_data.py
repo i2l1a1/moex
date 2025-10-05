@@ -2,6 +2,7 @@ import requests
 from environs import Env
 from datetime import date
 import pandas as pd
+import holidays
 
 from data_mapping import cost_ticker
 
@@ -43,6 +44,12 @@ class GetDataFromAPI:
 
         df_main = df_main[df_main['cost'].notna()].reset_index(drop=True)
 
-        print(df_main.columns)
+        print(df_main.to_string())
+
+        start_year = df_main['tradedate'].min().year
+        end_year = df_main['tradedate'].max().year
+        ru_holidays = holidays.country_holidays("RU", years=range(start_year, end_year + 1))
+        df_main = df_main[df_main['tradedate'].apply(lambda d: d.weekday() < 5 and d not in ru_holidays)].reset_index(
+            drop=True)
 
         return df_main
