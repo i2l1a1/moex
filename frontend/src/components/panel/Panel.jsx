@@ -14,7 +14,8 @@ function Panel({
                    selectedPeriodValues,
                    selectedCurveValues,
                    activePanelTab,
-                   setActivePanelTab
+                   setActivePanelTab,
+                   participantTypes
                }) {
     const toggleCollapseGeneralTab = () => {
         setActivePanelTab("general");
@@ -88,6 +89,7 @@ function Panel({
                         <ControllerListCurves
                             onSelectCurves={handleCurvesSelect}
                             selectedCurveValues={selectedCurveValues}
+                            participantTypes={participantTypes}
                         ></ControllerListCurves>
                     }
                 </PanelTabInterior>

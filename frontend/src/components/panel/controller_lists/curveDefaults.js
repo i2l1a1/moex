@@ -8,6 +8,18 @@ export const curveOptions = {
         'FIZ_pos_short',
         'FIZ_pos_long_num',
         'YUR_pos_long_num'
+    ],
+    ind_curves: [
+        'FIZ_pos',
+        'FIZ_pos_long',
+        'FIZ_pos_short',
+        'FIZ_pos_long_num',
+    ],
+    comp_curves: [
+        'YUR_pos',
+        'YUR_pos_long',
+        'YUR_pos_short_num',
+        'YUR_pos_long_num'
     ]
 };
 

@@ -80,6 +80,7 @@ function GraphBlock() {
                         selectedCurveValues={selectedCurveValues}
                         activePanelTab={activePanelTab}
                         setActivePanelTab={setActivePanelTab}
+                        participantTypes={selectedGeneralValues["participantTypes"]}
                     ></Panel>
                 )}
                 <Graph
