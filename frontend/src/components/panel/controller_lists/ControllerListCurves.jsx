@@ -1,7 +1,29 @@
 import ElementHorizontalList from "../../additional_components/ElementHorizontalList.jsx";
 import {curveOptions} from "./curveDefaults.js";
 
-function ControllerListCurves({onSelectCurves, selectedCurveValues, participantTypes}) {
+function filterCurves(participantTypes, dataTypes) {
+    if (participantTypes === "Individuals") {
+        if (dataTypes === "Number of contracts") {
+            return curveOptions.ind_curves_contracts;
+        } else {
+            return curveOptions.ind_curves_traders;
+        }
+    } else if (participantTypes === "Companies") {
+        if (dataTypes === "Number of contracts") {
+            return curveOptions.comp_curves_contracts;
+        } else {
+            return curveOptions.comp_curves_traders;
+        }
+    } else {
+        if (dataTypes === "Number of contracts") {
+            return [...curveOptions.ind_curves_contracts, ...curveOptions.comp_curves_contracts];
+        } else {
+            return [...curveOptions.ind_curves_traders, ...curveOptions.comp_curves_traders];
+        }
+    }
+}
+
+function ControllerListCurves({onSelectCurves, selectedCurveValues, participantTypes, dataTypes}) {
     const toggle = (curve) => {
         const newSelected = selectedCurveValues.curves.includes(curve)
             ? selectedCurveValues.curves.filter((c) => c !== curve)
@@ -9,17 +31,10 @@ function ControllerListCurves({onSelectCurves, selectedCurveValues, participantT
         onSelectCurves({curves: newSelected});
     };
 
-    const curvesForCurrentParticipantType =
-        participantTypes === "Individuals"
-            ? curveOptions.ind_curves
-            : participantTypes === "Companies"
-                ? curveOptions.comp_curves
-                : curveOptions.curves;
-
     return (
         <div className="ml-4">
             <ElementHorizontalList gap_class={"gap-y-4 gap-x-8"}>
-                {curvesForCurrentParticipantType.map((c) => (
+                {filterCurves(participantTypes, dataTypes).map((c) => (
                     <label key={c} className="text-button-text text-main-text whitespace-nowrap">
                         <input
                             type="checkbox"

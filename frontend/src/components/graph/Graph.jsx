@@ -124,11 +124,13 @@ function CustomTooltip({active, payload, label, selectedCurves = []}) {
     );
 }
 
-function Graph({requestParameters, selectedCurvesToRender}) {
+function Graph({requestParameters, selectedCurvesToRender, dataTypes}) {
     const {data, loading, error} = useFetch(
         "http://127.0.0.1:9091/get_all_data",
         requestParameters
     );
+
+    const y_left_label = dataTypes === "Number of contracts" ? "Количество контрактов" : "Количество лиц"
 
     let processedData = {};
     if (data) {
@@ -182,8 +184,6 @@ function Graph({requestParameters, selectedCurvesToRender}) {
         });
     }
 
-    console.log(processedData);
-
     if (loading) return (
         <div className="loading_and_error_message text-gray">Loading...</div>
     );
@@ -206,7 +206,7 @@ function Graph({requestParameters, selectedCurvesToRender}) {
                 <YAxis
                     yAxisId="num"
                     label={{
-                        value: "Количество контрактов",
+                        value: y_left_label,
                         angle: -90,
                         position: "outsideMiddle",
                     }}

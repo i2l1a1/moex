@@ -64,6 +64,10 @@ export const generalOptions = {
     participantTypes: [
         "Individuals & Companies", "Individuals", "Companies"
     ],
+    dataTypes: [
+        "Number of contracts",
+        "Number of traders"
+    ]
     // select3: [
     //     "Option -100", "Option 11"
     // ],
@@ -75,6 +79,7 @@ export const generalOptions = {
 export const initialGeneralValues = {
     ticker: "SR обыкновенные акции ПАО Сбербанк",
     participantTypes: "Individuals & Companies",
+    dataTypes: "Number of contracts"
     // select3: "Option -100",
     // select4: "Option 302"
 };

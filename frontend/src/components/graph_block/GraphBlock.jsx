@@ -28,6 +28,7 @@ function GraphBlock() {
         () => ({
             ticker: selectedGeneralValues.ticker.split(" ")[0],
             participant_type: format_participant_type(selectedGeneralValues.participantTypes),
+            data_types: selectedGeneralValues["dataTypes"],
             from_data: selectedPeriodValues.from,
             till_date: selectedPeriodValues.till,
         }),
@@ -81,11 +82,13 @@ function GraphBlock() {
                         activePanelTab={activePanelTab}
                         setActivePanelTab={setActivePanelTab}
                         participantTypes={selectedGeneralValues["participantTypes"]}
+                        dataTypes={selectedGeneralValues["dataTypes"]}
                     ></Panel>
                 )}
                 <Graph
                     requestParameters={requestParameters}
                     selectedCurvesToRender={selectedCurveValues.curves}
+                    dataTypes={selectedGeneralValues["dataTypes"]}
                 ></Graph>
             </div>
         </div>
