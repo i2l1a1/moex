@@ -92,6 +92,7 @@ function Graph({requestParameters, selectedCurvesToRender, dataTypes}) {
                 />
 
                 <Tooltip
+                    isAnimationActive={false}
                     content={
                         <CustomTooltip
                             selectedCurves={selectedCurvesToRender}

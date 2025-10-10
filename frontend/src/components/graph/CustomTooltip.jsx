@@ -1,4 +1,9 @@
-export default function CustomTooltip({active, payload, label, selectedCurves = []}) {
+export default function CustomTooltip({
+                                          active,
+                                          payload,
+                                          label,
+                                          selectedCurves = [],
+                                      }) {
     if (!active || !payload || payload.length === 0) return null;
 
     // payload[0].payload содержит весь объект данных для точки (включая cost и *_num поля)
@@ -8,7 +13,15 @@ export default function CustomTooltip({active, payload, label, selectedCurves = 
     const fmt = (v) => (v === null || v === undefined ? "-" : v);
 
     return (
-        <div className="custom-tooltip" style={{background: "#0b0c10", padding: 10, borderRadius: 6, color: "#fff"}}>
+        <div
+            className="custom-tooltip"
+            style={{
+                background: "transparent",
+                padding: 10,
+                borderRadius: 6,
+                color: "#fff",
+            }}
+        >
             <div style={{fontSize: 12, marginBottom: 6}}>{label}</div>
 
             {/* Цена (правой оси) */}
@@ -34,15 +47,24 @@ export default function CustomTooltip({active, payload, label, selectedCurves = 
 
                 return (
                     <div key={curveName} style={{fontSize: 13, marginTop: 6}}>
-                        <div><strong>{curveName}:</strong> {fmt(val)}</div>
+                        <div>
+                            <strong>{curveName}:</strong> {fmt(val)}
+                        </div>
                         {numField && point[numField] !== undefined && (
-                            <div style={{fontSize: 12, opacity: 0.85}}>({numField}: {fmt(point[numField])})</div>
+                            <div style={{fontSize: 12, opacity: 0.85}}>
+                                ({numField}: {fmt(point[numField])})
+                            </div>
                         )}
                     </div>
                 );
             })}
 
-            {["FIZ_pos_long_num", "FIZ_pos_short_num", "YUR_pos_long_num", "YUR_pos_short_num"].map((k) => {
+            {[
+                "FIZ_pos_long_num",
+                "FIZ_pos_short_num",
+                "YUR_pos_long_num",
+                "YUR_pos_short_num",
+            ].map((k) => {
                 if (selectedCurves.includes(k)) return null; // уже показано выше
                 if (point[k] === undefined) return null;
                 return (
