@@ -15,6 +15,7 @@ import useFetch from "../../hooks/useFetch.jsx";
 import {curveMapping} from "./curves.js";
 import CustomTooltip from "./CustomTooltip.jsx";
 import processData from "./processData.js";
+import {calculatePriceTicks} from "./calculatePriceTicks.js";
 
 function Graph({requestParameters, selectedCurvesToRender, dataTypes}) {
     const {data, loading, error} = useFetch(
@@ -33,6 +34,8 @@ function Graph({requestParameters, selectedCurvesToRender, dataTypes}) {
 
     const labelColor = "#5e666e";
     const tickColor = "#5e666e";
+
+    const {priceDomainMin, priceDomainMax, priceTicks} = calculatePriceTicks(processedData);
 
     return (
         <ResponsiveContainer className="w-full flex-1">
@@ -81,6 +84,9 @@ function Graph({requestParameters, selectedCurvesToRender, dataTypes}) {
                     orientation="right"
                     tickSize={6}
                     tick={{fill: tickColor}}
+                    domain={[priceDomainMin, priceDomainMax]}
+                    ticks={priceTicks}
+                    allowDecimals={false}
                     label={{
                         value: "Price (₽)",
                         angle: 90,
