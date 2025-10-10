@@ -1,0 +1,74 @@
+export const curveMapping = {
+    FIZ_pos: {
+        dataKey: "FIZ_pos",
+        stroke: "#2751A5",
+        name: "FIZ_pos",
+        yAxisId: "num",
+    },
+    YUR_pos: {
+        dataKey: "YUR_pos",
+        stroke: "#CF504A",
+        name: "YUR_pos",
+        yAxisId: "num",
+    },
+    FIZ_pos_long: {
+        dataKey: "FIZ_pos_long",
+        stroke: "#a5276e",
+        name: "FIZ_pos_long",
+        yAxisId: "num",
+    },
+    YUR_pos_long: {
+        dataKey: "YUR_pos_long",
+        stroke: "#6827a5",
+        name: "YUR_pos_long",
+        yAxisId: "num",
+    },
+    FIZ_pos_short: {
+        dataKey: "FIZ_pos_short",
+        stroke: "#FFC658",
+        name: "FIZ_pos_short",
+        yAxisId: "num",
+    },
+    YUR_pos_short: {
+        dataKey: "YUR_pos_short",
+        stroke: "#3e1319",
+        name: "YUR_pos_short",
+        yAxisId: "num",
+    },
+    FIZ_pos_num: {
+        dataKey: "FIZ_pos_num",
+        stroke: "#69a260",
+        name: "FIZ_pos_num",
+        yAxisId: "num",
+    },
+    YUR_pos_num: {
+        dataKey: "YUR_pos_num",
+        stroke: "#288b8f",
+        name: "YUR_pos_num",
+        yAxisId: "num",
+    },
+    FIZ_pos_long_num: {
+        dataKey: "FIZ_pos_long_num",
+        stroke: "#8884d8",
+        name: "FIZ_pos_long_num",
+        yAxisId: "num",
+    },
+    YUR_pos_long_num: {
+        dataKey: "YUR_pos_long_num",
+        stroke: "#82ca9d",
+        name: "YUR_pos_long_num",
+        yAxisId: "num",
+    },
+    FIZ_pos_short_num: {
+        dataKey: "FIZ_pos_short_num",
+        stroke: "#6a7396",
+        name: "FIZ_pos_short_num",
+        yAxisId: "num",
+    },
+    YUR_pos_short_num: {
+        dataKey: "YUR_pos_short_num",
+        stroke: "#48CF82",
+        name: "YUR_pos_short_num",
+        yAxisId: "num",
+    },
+};
