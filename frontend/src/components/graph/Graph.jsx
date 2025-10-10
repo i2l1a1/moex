@@ -37,16 +37,28 @@ const curveMapping = {
         name: "YUR_pos_long",
         yAxisId: "num",
     },
-    YUR_pos_short_num: {
-        dataKey: "YUR_pos_short_num",
-        stroke: "#48CF82",
-        name: "YUR_pos_short_num",
-        yAxisId: "num",
-    },
     FIZ_pos_short: {
         dataKey: "FIZ_pos_short",
         stroke: "#FFC658",
         name: "FIZ_pos_short",
+        yAxisId: "num",
+    },
+    YUR_pos_short: {
+        dataKey: "YUR_pos_short",
+        stroke: "#3e1319",
+        name: "YUR_pos_short",
+        yAxisId: "num",
+    },
+    FIZ_pos_num: {
+        dataKey: "FIZ_pos_num",
+        stroke: "#69a260",
+        name: "FIZ_pos_num",
+        yAxisId: "num",
+    },
+    YUR_pos_num: {
+        dataKey: "YUR_pos_num",
+        stroke: "#288b8f",
+        name: "YUR_pos_num",
         yAxisId: "num",
     },
     FIZ_pos_long_num: {
@@ -59,6 +71,18 @@ const curveMapping = {
         dataKey: "YUR_pos_long_num",
         stroke: "#82ca9d",
         name: "YUR_pos_long_num",
+        yAxisId: "num",
+    },
+    FIZ_pos_short_num: {
+        dataKey: "FIZ_pos_short_num",
+        stroke: "#6a7396",
+        name: "FIZ_pos_short_num",
+        yAxisId: "num",
+    },
+    YUR_pos_short_num: {
+        dataKey: "YUR_pos_short_num",
+        stroke: "#48CF82",
+        name: "YUR_pos_short_num",
         yAxisId: "num",
     },
 };
@@ -134,6 +158,8 @@ function Graph({requestParameters, selectedCurvesToRender, dataTypes}) {
 
     let processedData = {};
     if (data) {
+        console.log(data);
+
         data.forEach((item) => {
             const {
                 tradedate,
@@ -142,6 +168,7 @@ function Graph({requestParameters, selectedCurvesToRender, dataTypes}) {
                 pos,
                 pos_long,
                 pos_short,
+                pos_num,
                 pos_long_num,
                 pos_short_num,
             } = item;
@@ -153,18 +180,19 @@ function Graph({requestParameters, selectedCurvesToRender, dataTypes}) {
 
             // наполняем поля, придерживаясь твоей логики
             if (clgroup === "FIZ") {
-                // цена одна на дату — перезапись одинаковой цены не критична
                 processedData[tradedate].cost = cost;
                 processedData[tradedate].FIZ_pos = pos;
                 processedData[tradedate].FIZ_pos_long = pos_long;
                 processedData[tradedate].FIZ_pos_short = pos_short;
+                processedData[tradedate].FIZ_pos_num = pos_num;
                 processedData[tradedate].FIZ_pos_long_num = pos_long_num;
                 processedData[tradedate].FIZ_pos_short_num = pos_short_num;
             } else if (clgroup === "YUR") {
-                // pos_long!!
                 processedData[tradedate].cost = cost;
                 processedData[tradedate].YUR_pos = pos;
+                processedData[tradedate].YUR_pos_long = pos_long;
                 processedData[tradedate].YUR_pos_short = pos_short;
+                processedData[tradedate].YUR_pos_num = pos_num;
                 processedData[tradedate].YUR_pos_long_num = pos_long_num;
                 processedData[tradedate].YUR_pos_short_num = pos_short_num;
             }
@@ -183,6 +211,8 @@ function Graph({requestParameters, selectedCurvesToRender, dataTypes}) {
             return r;
         });
     }
+
+    console.log(processedData);
 
     if (loading) return (
         <div className="loading_and_error_message text-gray">Loading...</div>

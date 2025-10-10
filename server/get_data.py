@@ -51,12 +51,20 @@ class FetchMoexData:
         return df_main.merge(df_costs[['tradedate', 'cost']], on='tradedate', how='left')
 
     def __drop_nans_and_holidays(self, df_main):
-        df_main = df_main[df_main['cost'].notna()].reset_index(drop=True)
-        start_year = df_main['tradedate'].min().year
-        end_year = df_main['tradedate'].max().year
-        ru_holidays = holidays.country_holidays("RU", years=range(start_year, end_year + 1))
-        return df_main[df_main['tradedate'].apply(lambda d: d.weekday() < 5 and d not in ru_holidays)].reset_index(
-            drop=True)
+        try:
+            df_main = df_main[df_main['cost'].notna()].reset_index(drop=True)
+            start_year = df_main['tradedate'].min().year
+            end_year = df_main['tradedate'].max().year
+            ru_holidays = holidays.country_holidays("RU", years=range(start_year, end_year + 1))
+            return df_main[df_main['tradedate'].apply(lambda d: d.weekday() < 5 and d not in ru_holidays)].reset_index(
+                drop=True)
+        except Exception:
+            return df_main
+
+    def __add_pos_column(self, df_main):
+        if 'pos_long_num' in df_main.columns and 'pos_short_num' in df_main.columns:
+            df_main['pos_num'] = df_main['pos_long_num'].abs() - df_main['pos_short_num'].abs()
+        return df_main
 
     def fetchFutoiData(self, ticker, participant_type="", data_types="", from_data=str(date.today().isoformat()),
                        till_date=str(date.today().isoformat())):
@@ -71,5 +79,7 @@ class FetchMoexData:
         df_main = self.__merge_all_dataframes(df_main, df_costs)
 
         df_main = self.__drop_nans_and_holidays(df_main)
+
+        df_main = self.__add_pos_column(df_main)
 
         return df_main
