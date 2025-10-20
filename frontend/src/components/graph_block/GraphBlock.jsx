@@ -89,7 +89,17 @@ function GraphBlock() {
                     requestParameters={requestParameters}
                     selectedCurvesToRender={selectedCurveValues.curves}
                     dataTypes={selectedGeneralValues["dataTypes"]}
+                    is_oscillator={false}
                 ></Graph>
+
+                {selectedCurveValues.curves.includes("oscillator") && (
+                    <Graph
+                        requestParameters={requestParameters}
+                        selectedCurvesToRender={selectedCurveValues.curves}
+                        dataTypes={selectedGeneralValues["dataTypes"]}
+                        is_oscillator={true}
+                    ></Graph>
+                )}
             </div>
         </div>
     );

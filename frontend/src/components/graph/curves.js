@@ -71,4 +71,10 @@ export const curveMapping = {
         name: "YUR_pos_short_num",
         yAxisId: "num",
     },
+    oscillator: {
+        dataKey: "oscillator",
+        stroke: "#ffa46b",
+        name: "Oscillator",
+        yAxisId: "num",
+    },
 };

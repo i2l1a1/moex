@@ -17,7 +17,13 @@ import CustomTooltip from "./CustomTooltip.jsx";
 import processData from "./processData.js";
 import {calculatePriceTicks} from "./calculatePriceTicks.js";
 
-function Graph({requestParameters, selectedCurvesToRender, dataTypes}) {
+function Graph({requestParameters, selectedCurvesToRender, dataTypes, is_oscillator}) {
+    if (is_oscillator) {
+        selectedCurvesToRender = selectedCurvesToRender.filter((c) => c === "oscillator");
+    } else {
+        selectedCurvesToRender = selectedCurvesToRender.filter((c) => c !== "oscillator");
+    }
+
     const {data, loading, error} = useFetch(
         "http://127.0.0.1:9091/get_all_data",
         requestParameters
@@ -69,7 +75,10 @@ function Graph({requestParameters, selectedCurvesToRender, dataTypes}) {
                     tick={{fill: tickColor}}
                     yAxisId="num"
                     label={{
-                        value: dataTypes === "Number of contracts" ? "Number of contracts" : "Number of traders",
+                        value:
+                            dataTypes === "Number of contracts"
+                                ? is_oscillator ? "Oscillator" : "Contracts"
+                                : (is_oscillator ? "Oscillator" : "Traders"),
                         angle: -90,
                         position: "insideLeft",
                         offset: -20,

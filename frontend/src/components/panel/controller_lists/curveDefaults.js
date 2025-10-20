@@ -21,17 +21,20 @@ export const curveOptions = {
     ind_curves_traders: [
         'FIZ_pos_long_num',
         "FIZ_pos_short_num",
-        'FIZ_pos_num'
+        'FIZ_pos_num',
     ],
     comp_curves_contracts: [
         'YUR_pos',
         'YUR_pos_long',
-        'YUR_pos_short'
+        'YUR_pos_short',
     ],
     comp_curves_traders: [
         'YUR_pos_short_num',
         'YUR_pos_long_num',
-        'YUR_pos_num'
+        'YUR_pos_num',
+    ],
+    oscillator: [
+        'oscillator'
     ]
 };
 

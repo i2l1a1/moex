@@ -4,21 +4,21 @@ import {curveOptions} from "./curveDefaults.js";
 function filterCurves(participantTypes, dataTypes) {
     if (participantTypes === "Individuals") {
         if (dataTypes === "Number of contracts") {
-            return curveOptions.ind_curves_contracts;
+            return [...curveOptions.ind_curves_contracts, ...curveOptions.oscillator];
         } else {
-            return curveOptions.ind_curves_traders;
+            return [...curveOptions.ind_curves_traders, ...curveOptions.oscillator];
         }
     } else if (participantTypes === "Companies") {
         if (dataTypes === "Number of contracts") {
-            return curveOptions.comp_curves_contracts;
+            return [...curveOptions.comp_curves_contracts, ...curveOptions.oscillator];
         } else {
-            return curveOptions.comp_curves_traders;
+            return [...curveOptions.comp_curves_traders, ...curveOptions.oscillator];
         }
     } else {
         if (dataTypes === "Number of contracts") {
-            return [...curveOptions.ind_curves_contracts, ...curveOptions.comp_curves_contracts];
+            return [...curveOptions.ind_curves_contracts, ...curveOptions.comp_curves_contracts, ...curveOptions.oscillator];
         } else {
-            return [...curveOptions.ind_curves_traders, ...curveOptions.comp_curves_traders];
+            return [...curveOptions.ind_curves_traders, ...curveOptions.comp_curves_traders, ...curveOptions.oscillator];
         }
     }
 }

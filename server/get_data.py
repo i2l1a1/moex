@@ -66,6 +66,13 @@ class FetchMoexData:
             df_main['pos_num'] = df_main['pos_long_num'].abs() - df_main['pos_short_num'].abs()
         return df_main
 
+    def __add_oscillator_column(self, df_main):
+        pos_colum_name = 'pos' if 'pos' in df_main.columns else 'pos_num'
+        min_pos = df_main[pos_colum_name].min()
+        max_pos = df_main[pos_colum_name].max()
+        df_main['oscillator'] = round(100 * (df_main[pos_colum_name] - min_pos) / (max_pos - min_pos))
+        return df_main
+
     def fetchFutoiData(self, ticker, participant_type="", data_types="", from_data=str(date.today().isoformat()),
                        till_date=str(date.today().isoformat())):
         response_numbers, response_costs = self.__fetch_json_from_moex(ticker, from_data, till_date)
@@ -81,5 +88,7 @@ class FetchMoexData:
         df_main = self.__drop_nans_and_holidays(df_main)
 
         df_main = self.__add_pos_column(df_main)
+
+        df_main = self.__add_oscillator_column(df_main)
 
         return df_main
