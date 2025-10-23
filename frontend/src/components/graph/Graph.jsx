@@ -17,11 +17,22 @@ import CustomTooltip from "./CustomTooltip.jsx";
 import processData from "./processData.js";
 import {calculatePriceTicks} from "./calculatePriceTicks.js";
 
-function Graph({requestParameters, selectedCurvesToRender, dataTypes, is_oscillator}) {
+function Graph({requestParameters, selectedCurvesToRender, dataTypes, participantTypes, is_oscillator}) {
     if (is_oscillator) {
-        selectedCurvesToRender = selectedCurvesToRender.filter((c) => c === "oscillator");
+        if (participantTypes === "Individuals") {
+            selectedCurvesToRender = ["oscillator_FIZ"];
+        } else if (participantTypes === "Companies") {
+            selectedCurvesToRender = ["oscillator_YUR"];
+        } else {
+            selectedCurvesToRender = ["oscillator_FIZ", "oscillator_YUR"];
+        }
     } else {
-        selectedCurvesToRender = selectedCurvesToRender.filter((c) => c !== "oscillator");
+        selectedCurvesToRender = selectedCurvesToRender.filter(
+            (c) =>
+                c !== "oscillator" &&
+                c !== "oscillator_FIZ" &&
+                c !== "oscillator_YUR"
+        );
     }
 
     const {data, loading, error} = useFetch(
@@ -101,7 +112,11 @@ function Graph({requestParameters, selectedCurvesToRender, dataTypes, is_oscilla
                         angle: 90,
                         position: "insideRight",
                         offset: -15,
-                        style: {textAnchor: "middle", fill: labelColor, fontSize: 12},
+                        style: {
+                            textAnchor: "middle",
+                            fill: labelColor,
+                            fontSize: 12,
+                        },
                     }}
                     padding={{bottom: 12}}
                 />

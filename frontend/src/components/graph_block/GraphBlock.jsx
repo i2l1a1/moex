@@ -89,6 +89,7 @@ function GraphBlock() {
                     requestParameters={requestParameters}
                     selectedCurvesToRender={selectedCurveValues.curves}
                     dataTypes={selectedGeneralValues["dataTypes"]}
+                    participantTypes={selectedGeneralValues["participantTypes"]}
                     is_oscillator={false}
                 ></Graph>
 
@@ -97,6 +98,7 @@ function GraphBlock() {
                         requestParameters={requestParameters}
                         selectedCurvesToRender={selectedCurveValues.curves}
                         dataTypes={selectedGeneralValues["dataTypes"]}
+                        participantTypes={selectedGeneralValues["participantTypes"]}
                         is_oscillator={true}
                     ></Graph>
                 )}

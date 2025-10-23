@@ -12,7 +12,8 @@ export default function processData(data) {
                 pos_num,
                 pos_long_num,
                 pos_short_num,
-                oscillator
+                oscillator_FIZ,
+                oscillator_YUR,
             } = item;
 
             if (!processedData[tradedate]) {
@@ -27,7 +28,9 @@ export default function processData(data) {
                 processedData[tradedate].FIZ_pos_num = pos_num;
                 processedData[tradedate].FIZ_pos_long_num = pos_long_num;
                 processedData[tradedate].FIZ_pos_short_num = pos_short_num;
-                processedData[tradedate].oscillator = oscillator;
+                if (oscillator_FIZ !== null && oscillator_FIZ !== undefined) {
+                    processedData[tradedate].oscillator_FIZ = oscillator_FIZ;
+                }
             } else if (clgroup === "YUR") {
                 processedData[tradedate].cost = cost;
                 processedData[tradedate].YUR_pos = pos;
@@ -36,7 +39,9 @@ export default function processData(data) {
                 processedData[tradedate].YUR_pos_num = pos_num;
                 processedData[tradedate].YUR_pos_long_num = pos_long_num;
                 processedData[tradedate].YUR_pos_short_num = pos_short_num;
-                processedData[tradedate].oscillator = oscillator;
+                if (oscillator_YUR !== null && oscillator_YUR !== undefined) {
+                    processedData[tradedate].oscillator_YUR = oscillator_YUR;
+                }
             }
         });
     }

@@ -71,10 +71,16 @@ export const curveMapping = {
         name: "YUR_pos_short_num",
         yAxisId: "num",
     },
-    oscillator: {
-        dataKey: "oscillator",
-        stroke: "#ffa46b",
-        name: "Oscillator",
+    oscillator_FIZ: {
+        dataKey: "oscillator_FIZ",
+        stroke: "#2751A5",
+        name: "Oscillator (Individuals)",
+        yAxisId: "num",
+    },
+    oscillator_YUR: {
+        dataKey: "oscillator_YUR",
+        stroke: "#CF504A",
+        name: "Oscillator (Companies)",
         yAxisId: "num",
     },
 };

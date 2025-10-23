@@ -66,11 +66,44 @@ class FetchMoexData:
             df_main['pos_num'] = df_main['pos_long_num'].abs() - df_main['pos_short_num'].abs()
         return df_main
 
-    def __add_oscillator_column(self, df_main):
+    def __add_oscillator_column(self, participant_type, df_main):
         pos_colum_name = 'pos' if 'pos' in df_main.columns else 'pos_num'
-        min_pos = df_main[pos_colum_name].min()
-        max_pos = df_main[pos_colum_name].max()
-        df_main['oscillator'] = round(100 * (df_main[pos_colum_name] - min_pos) / (max_pos - min_pos))
+        if participant_type:
+            min_pos = df_main[pos_colum_name].min()
+            max_pos = df_main[pos_colum_name].max()
+            if max_pos != min_pos:
+                df_main[f'oscillator_{participant_type}'] = round(
+                    100 * (df_main[pos_colum_name] - min_pos) / (max_pos - min_pos))
+            else:
+                df_main[f'oscillator_{participant_type}'] = 0
+        else:
+
+            df_main['oscillator_YUR'] = None
+            df_main['oscillator_FIZ'] = None
+
+            yur_mask = df_main['clgroup'] == 'YUR'
+            if yur_mask.any():
+                yur_min_pos = df_main.loc[yur_mask, pos_colum_name].min()
+                yur_max_pos = df_main.loc[yur_mask, pos_colum_name].max()
+                if yur_max_pos != yur_min_pos:
+                    df_main.loc[yur_mask, 'oscillator_YUR'] = round(
+                        100 * (df_main.loc[yur_mask, pos_colum_name] - yur_min_pos) / (yur_max_pos - yur_min_pos)
+                    )
+                else:
+                    df_main.loc[yur_mask, 'oscillator_YUR'] = 0
+
+            fiz_mask = df_main['clgroup'] == 'FIZ'
+            if fiz_mask.any():
+                fiz_min_pos = df_main.loc[fiz_mask, pos_colum_name].min()
+                fiz_max_pos = df_main.loc[fiz_mask, pos_colum_name].max()
+                if fiz_max_pos != fiz_min_pos:
+                    df_main.loc[fiz_mask, 'oscillator_FIZ'] = round(
+                        100 * (df_main.loc[fiz_mask, pos_colum_name] - fiz_min_pos) / (fiz_max_pos - fiz_min_pos)
+                    )
+                else:
+                    df_main.loc[fiz_mask, 'oscillator_FIZ'] = 0
+        print(df_main.to_string())
+        print(participant_type)
         return df_main
 
     def fetchFutoiData(self, ticker, participant_type="", data_types="", from_data=str(date.today().isoformat()),
@@ -89,6 +122,6 @@ class FetchMoexData:
 
         df_main = self.__add_pos_column(df_main)
 
-        df_main = self.__add_oscillator_column(df_main)
+        df_main = self.__add_oscillator_column(participant_type, df_main)
 
         return df_main
