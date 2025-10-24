@@ -14,6 +14,7 @@ export default function processData(data) {
                 pos_short_num,
                 oscillator_FIZ,
                 oscillator_YUR,
+                open_interest
             } = item;
 
             if (!processedData[tradedate]) {
@@ -31,6 +32,9 @@ export default function processData(data) {
                 if (oscillator_FIZ !== null && oscillator_FIZ !== undefined) {
                     processedData[tradedate].oscillator_FIZ = oscillator_FIZ;
                 }
+                if (open_interest !== null && open_interest !== undefined) {
+                    processedData[tradedate].open_interest = open_interest;
+                }
             } else if (clgroup === "YUR") {
                 processedData[tradedate].cost = cost;
                 processedData[tradedate].YUR_pos = pos;
@@ -41,6 +45,9 @@ export default function processData(data) {
                 processedData[tradedate].YUR_pos_short_num = pos_short_num;
                 if (oscillator_YUR !== null && oscillator_YUR !== undefined) {
                     processedData[tradedate].oscillator_YUR = oscillator_YUR;
+                }
+                if (open_interest !== null && open_interest !== undefined) {
+                    processedData[tradedate].open_interest = open_interest;
                 }
             }
         });

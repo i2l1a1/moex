@@ -73,6 +73,12 @@ class FetchMoexData:
 
         return df_main, df_costs
 
+    def __add_open_interest_column(self, data_types, df_main):
+        if data_types == "Number of contracts":
+            open_interest_per_date = df_main.groupby('tradedate')['pos_long'].sum()
+            df_main['open_interest'] = df_main['tradedate'].map(open_interest_per_date)
+        return df_main
+
     def __filter_by_participant_type(self, participant_type, df_main):
         if participant_type:
             return df_main[df_main['clgroup'] == participant_type]
@@ -118,7 +124,6 @@ class FetchMoexData:
 
             if vals.empty:
                 df_main.loc[mask, f"oscillator_{grp}"] = None
-                print(123)
                 continue
 
             rolling_min = vals.rolling(window=window_str, min_periods=1).min()
@@ -159,6 +164,10 @@ class FetchMoexData:
             return pd.DataFrame(columns=[])
 
         df_main, df_costs = self.__build_dataframes_from_json(response_numbers, response_costs)
+
+        df_main = self.__add_open_interest_column(data_types, df_main)
+
+        print(df_main.head(5).to_string())
 
         df_main = self.__filter_by_participant_type(participant_type, df_main)
 

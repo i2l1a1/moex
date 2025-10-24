@@ -12,6 +12,7 @@ export const curveOptions = {
         'YUR_pos_short_num',
         'YUR_pos_long_num',
         'YUR_pos_num',
+        'open_interest'
     ],
     ind_curves_contracts: [
         'FIZ_pos',
@@ -32,6 +33,9 @@ export const curveOptions = {
         'YUR_pos_short_num',
         'YUR_pos_long_num',
         'YUR_pos_num',
+    ],
+    common_for_contracts: [
+        'open_interest'
     ],
     oscillator: [
         'oscillator'

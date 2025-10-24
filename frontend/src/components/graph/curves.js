@@ -83,4 +83,10 @@ export const curveMapping = {
         name: "Oscillator (Companies)",
         yAxisId: "num",
     },
+    open_interest: {
+        dataKey: "open_interest",
+        stroke: "rgba(0,234,255,0.44)",
+        name: "Open interest",
+        yAxisId: "num",
+    },
 };
