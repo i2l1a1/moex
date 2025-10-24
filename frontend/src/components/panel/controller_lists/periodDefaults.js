@@ -1,4 +1,8 @@
+const today = new Date();
+
 export const initialPeriodValues = {
-    from: "2024-01-01",
-    till: "2025-01-01"
+    from: new Date(today.getFullYear() - 1,
+        today.getMonth(),
+        today.getDate()).toLocaleDateString('en-CA'),
+    till: today.toLocaleDateString('en-CA')
 }

@@ -13,9 +13,15 @@ ALGOPACK_API_KEY = env("ALGOPACK_API_KEY")
 
 class FetchMoexData:
     def __fetch_json_from_moex(self, ticker, from_data, till_date):
-        _min_date = date(2006, 1, 1)
-        _from = datetime.fromisoformat(from_data).date()
-        _till = datetime.fromisoformat(till_date).date()
+        _min_date = date(2007, 1, 1)
+        try:
+            _from = datetime.fromisoformat(from_data).date()
+        except ValueError:
+            _from = date.today()
+        try:
+            _till = datetime.fromisoformat(till_date).date()
+        except ValueError:
+            _till = date.today()
         from_data = _min_date.isoformat() if _from <= _min_date else _from.isoformat()
         till_date = _min_date.isoformat() if _till <= _min_date else _till.isoformat()
 
@@ -148,6 +154,10 @@ class FetchMoexData:
                        till_date=str(date.today().isoformat())):
         response_numbers, response_costs = self.__fetch_json_from_moex(ticker, from_data, till_date)
 
+        if not response_numbers['columns'] or response_numbers['data'] == [] or not response_costs['columns'] or \
+                response_costs['data'] == []:
+            return pd.DataFrame(columns=[])
+
         df_main, df_costs = self.__build_dataframes_from_json(response_numbers, response_costs)
 
         df_main = self.__filter_by_participant_type(participant_type, df_main)
@@ -180,6 +190,10 @@ class FetchMoexData:
 
         response_numbers, response_costs = self.__fetch_json_from_moex(ticker, api_start_date, till_date)
 
+        if not response_numbers['columns'] or response_numbers['data'] == [] or not response_costs['columns'] or \
+                response_costs['data'] == []:
+            return pd.DataFrame(columns=[])
+
         df_main, df_costs = self.__build_dataframes_from_json(response_numbers, response_costs)
 
         df_main = self.__filter_by_participant_type(participant_type, df_main)
@@ -201,8 +215,8 @@ class FetchMoexData:
             requested_till_date = date.today()
 
         mask_return = (df_main['tradedate'] >= requested_from_date) & (df_main['tradedate'] <= requested_till_date)
-        result_df = df_main.loc[mask_return].reset_index(drop=True)
+        df_main = df_main.loc[mask_return].reset_index(drop=True)
 
-        result_df = self._sanitize_dataframe(result_df)
+        df_main = self._sanitize_dataframe(df_main)
 
-        return result_df
+        return df_main
