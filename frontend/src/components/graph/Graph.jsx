@@ -17,7 +17,7 @@ import CustomTooltip from "./CustomTooltip.jsx";
 import processData from "./processData.js";
 import {calculatePriceTicks} from "./calculatePriceTicks.js";
 
-function Graph({requestParameters, selectedCurvesToRender, dataTypes, participantTypes, is_oscillator}) {
+function Graph({requestParameters, selectedCurvesToRender, dataTypes, participantTypes, is_oscillator, api_url}) {
     if (is_oscillator) {
         if (participantTypes === "Individuals") {
             selectedCurvesToRender = ["oscillator_FIZ"];
@@ -36,7 +36,7 @@ function Graph({requestParameters, selectedCurvesToRender, dataTypes, participan
     }
 
     const {data, loading, error} = useFetch(
-        "http://127.0.0.1:9091/get_all_data",
+        api_url,
         requestParameters
     );
 

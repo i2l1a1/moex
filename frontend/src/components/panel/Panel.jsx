@@ -5,18 +5,21 @@ import ControllerListGeneral from "./controller_lists/ControllerListGeneral.jsx"
 import ControllerListPeriod from "./controller_lists/ControllerListPeriod.jsx";
 import ElementHorizontalList from "../additional_components/ElementHorizontalList.jsx";
 import ControllerListCurves from "./controller_lists/ControllerListCurves.jsx";
+import ControllerListOscillator from "./controller_lists/ControllerListOscillator.jsx";
 
 function Panel({
                    onGeneralChange,
                    onPeriodChange,
                    onCurvesChange,
+                   onOscillatorChange,
                    selectedGeneralValues,
                    selectedPeriodValues,
                    selectedCurveValues,
+                   selectedOscillatorValues,
                    activePanelTab,
                    setActivePanelTab,
                    participantTypes,
-                   dataTypes
+                   dataTypes,
                }) {
     const toggleCollapseGeneralTab = () => {
         setActivePanelTab("general");
@@ -30,6 +33,10 @@ function Panel({
         setActivePanelTab("curves");
     };
 
+    const toggleCollapseOscillatorTab = () => {
+        setActivePanelTab("oscillator");
+    };
+
     const handleGeneralSelect = (values) => {
         onGeneralChange(values);
     };
@@ -40,6 +47,10 @@ function Panel({
 
     const handleCurvesSelect = (values) => {
         onCurvesChange(values);
+    };
+
+    const handleOscillatorSelect = (values) => {
+        onOscillatorChange(values);
     };
 
     return (
@@ -58,8 +69,13 @@ function Panel({
                 <PanelTab
                     onCollapseClick={toggleCollapseCurvesTab}
                     isCollapsed={activePanelTab !== "curves"}
-                    panel_tab={"Curves"}
-                ></PanelTab>
+                    panel_tab={"Curves"}>
+                </PanelTab>
+                {selectedCurveValues.curves.includes("oscillator") && (<PanelTab
+                    onCollapseClick={toggleCollapseOscillatorTab}
+                    isCollapsed={activePanelTab !== "oscillator"}
+                    panel_tab={"Oscillator"}
+                ></PanelTab>)}
             </ElementHorizontalList>
 
             {activePanelTab === "general" && (
@@ -93,6 +109,17 @@ function Panel({
                             participantTypes={participantTypes}
                             dataTypes={dataTypes}
                         ></ControllerListCurves>
+                    }
+                </PanelTabInterior>
+            )}
+
+            {activePanelTab === "oscillator" && (
+                <PanelTabInterior isCollapsed={false}>
+                    {
+                        <ControllerListOscillator
+                            onSelectOscillator={handleOscillatorSelect}
+                            selectedOscillatorValues={selectedOscillatorValues}
+                        ></ControllerListOscillator>
                     }
                 </PanelTabInterior>
             )}
