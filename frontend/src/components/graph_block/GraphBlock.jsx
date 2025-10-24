@@ -102,7 +102,8 @@ function GraphBlock() {
                 onCollapseClick={toggleCollapse}
                 onTogglePanelClick={togglePanel}
                 isCollapsed={isCollapsed}
-                requestParameters={mainGraphRequestParams}
+                requestParameters={oscillatorRequestParams}
+                is_oscillator={selectedCurveValues.curves.includes("oscillator")}
             ></GraphBlockHeader>
             <div
                 className={`flex-1 flex flex-col pl-8 pr-8 pb-8 gap-8 ${isCollapsed ? "hidden" : ""}`}

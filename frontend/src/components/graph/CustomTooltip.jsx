@@ -22,10 +22,10 @@ export default function CustomTooltip({
                 color: "#fff",
             }}
         >
-            <div style={{fontSize: 12, marginBottom: 6}}>{label}</div>
+            <div style={{fontSize: 15, marginBottom: 6}}>{label}</div>
 
             {/* Цена (правой оси) */}
-            <div style={{fontSize: 13}}>
+            <div style={{fontSize: 16}}>
                 <strong>Price:</strong> {fmt(point.cost)}
             </div>
 
@@ -46,12 +46,12 @@ export default function CustomTooltip({
                 }
 
                 return (
-                    <div key={curveName} style={{fontSize: 13, marginTop: 6}}>
+                    <div key={curveName} style={{fontSize: 16, marginTop: 6}}>
                         <div>
                             <strong>{curveName}:</strong> {fmt(val)}
                         </div>
                         {numField && point[numField] !== undefined && (
-                            <div style={{fontSize: 12, opacity: 0.85}}>
+                            <div style={{fontSize: 15, opacity: 0.85}}>
                                 ({numField}: {fmt(point[numField])})
                             </div>
                         )}
@@ -68,7 +68,7 @@ export default function CustomTooltip({
                 if (selectedCurves.includes(k)) return null; // уже показано выше
                 if (point[k] === undefined) return null;
                 return (
-                    <div key={k} style={{fontSize: 12, marginTop: 6}}>
+                    <div key={k} style={{fontSize: 15, marginTop: 6}}>
                         <strong>{k}:</strong> {fmt(point[k])}
                     </div>
                 );

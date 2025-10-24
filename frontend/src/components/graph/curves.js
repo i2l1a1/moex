@@ -31,19 +31,19 @@ export const curveMapping = {
     },
     YUR_pos_short: {
         dataKey: "YUR_pos_short",
-        stroke: "#3e1319",
+        stroke: "#156592",
         name: "YUR_pos_short",
         yAxisId: "num",
     },
     FIZ_pos_num: {
         dataKey: "FIZ_pos_num",
-        stroke: "#69a260",
+        stroke: "#4528b1",
         name: "FIZ_pos_num",
         yAxisId: "num",
     },
     YUR_pos_num: {
         dataKey: "YUR_pos_num",
-        stroke: "#288b8f",
+        stroke: "#83b42d",
         name: "YUR_pos_num",
         yAxisId: "num",
     },
@@ -55,7 +55,7 @@ export const curveMapping = {
     },
     YUR_pos_long_num: {
         dataKey: "YUR_pos_long_num",
-        stroke: "#82ca9d",
+        stroke: "#af6ad2",
         name: "YUR_pos_long_num",
         yAxisId: "num",
     },
