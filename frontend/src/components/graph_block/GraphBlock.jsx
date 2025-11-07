@@ -14,7 +14,8 @@ function GraphBlock({
                         activePanelTab, setActivePanelTab,
                         isCollapsed, setIsCollapsed,
                         isPanelCollapsed, setIsPanelCollapsed,
-                        onDuplicateGraphClick
+                        onDuplicateGraphClick,
+                        onDeleteGraphClick
                     }) {
     console.log('GraphBlock render', id);
     useEffect(() => {
@@ -66,6 +67,7 @@ function GraphBlock({
                 onCollapseClick={handleCollapseClick}
                 onTogglePanelClick={handleTogglePanelClick}
                 onDuplicateGraphClick={() => onDuplicateGraphClick(id)}
+                onDeleteGraphClick={() => onDeleteGraphClick(id)}
                 isCollapsed={isCollapsed}
                 isPanelCollapsed={isPanelCollapsed}
                 requestParameters={oscillatorRequestParams}

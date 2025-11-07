@@ -39,6 +39,13 @@ function GraphBlockHolder() {
         });
     }, []);
 
+    const deleteGraphBlock = useCallback((idToDelete) => {
+        setGraphBlocks((prevBlocks) => {
+            const {[idToDelete]: _, ...restOfBlocks} = prevBlocks;
+            return restOfBlocks;
+        });
+    }, []);
+
     const setterMapRef = useRef({});
     Object.values(graphBlocks).forEach((block) => {
         if (!setterMapRef.current[block.id]) {
@@ -102,6 +109,7 @@ function GraphBlockHolder() {
                     isPanelCollapsed={block.isPanelCollapsed}
                     setIsPanelCollapsed={setterMapRef.current[block.id].setIsPanelCollapsed}
                     onDuplicateGraphClick={duplicateGraphBlock}
+                    onDeleteGraphClick={deleteGraphBlock}
                 />
             ))}
         </div>

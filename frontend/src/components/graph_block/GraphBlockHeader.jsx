@@ -9,7 +9,8 @@ function GraphBlockHeader({
                               isCollapsed,
                               isPanelCollapsed,
                               requestParameters,
-                              is_oscillator
+                              is_oscillator,
+                              onDeleteGraphClick
                           }) {
     function format_date(date_raw) {  // YYYY-MM-DD -> DD.MM.YYYY
         if (!date_raw) {
@@ -47,7 +48,9 @@ function GraphBlockHeader({
                 <button onClick={onDuplicateGraphClick}>
                     <img src="/duplicate_graph.svg" alt="duplicate graph"/>
                 </button>
-                <img src="/delete_graph.svg" alt="delete graph"/>
+                <button onClick={onDeleteGraphClick}>
+                    <img src="/delete_graph.svg" alt="delete graph"/>
+                </button>
             </ElementHorizontalList>
         </div>
     );
