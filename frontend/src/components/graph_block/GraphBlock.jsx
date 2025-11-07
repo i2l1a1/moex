@@ -1,36 +1,30 @@
 import "../../App.css";
 import GraphBlockHeader from "./GraphBlockHeader.jsx";
-import {useState, useMemo, useEffect} from "react";
+import React, {useMemo, useEffect} from "react";
 import Panel from "../panel/Panel.jsx";
-import {initialGeneralValues} from "../panel/controller_lists/generalDefaults.js";
-import {initialPeriodValues} from "../panel/controller_lists/periodDefaults.js";
 import Graph from "../graph/Graph.jsx";
-import {initialCurveValues} from "../panel/controller_lists/curveDefaults.js";
-import {initialOscillatorValues} from "../panel/controller_lists/oscillatorDefaults.js"; // Ensure this is imported if needed
 
-function GraphBlock({id, onDuplicateGraphClick}) {
-    const [isCollapsed, setIsCollapsed] = useState(false);
-    const [isPanelCollapsed, setIsPanelCollapsed] = useState(false);
-    const [selectedGeneralValues, setSelectedGeneralValues] =
-        useState(initialGeneralValues);
-    const [selectedPeriodValues, setSelectedPeriodValues] =
-        useState(initialPeriodValues);
-    const [debouncedPeriodValues, setDebouncedPeriodValues] =
-        useState(initialPeriodValues);
-    const [selectedCurveValues, setSelectedCurveValues] =
-        useState(initialCurveValues);
-    const [selectedOscillatorValues, setSelectedOscillatorValues] = useState(initialOscillatorValues);
-    const [activePanelTab, setActivePanelTab] = useState("general");
-
+function GraphBlock({
+                        id,
+                        selectedGeneralValues, setSelectedGeneralValues,
+                        selectedPeriodValues, setSelectedPeriodValues,
+                        debouncedPeriodValues, setDebouncedPeriodValues,
+                        selectedCurveValues, setSelectedCurveValues,
+                        selectedOscillatorValues, setSelectedOscillatorValues,
+                        activePanelTab, setActivePanelTab,
+                        isCollapsed, setIsCollapsed,
+                        isPanelCollapsed, setIsPanelCollapsed,
+                        onDuplicateGraphClick
+                    }) {
+    console.log('GraphBlock render', id);
     useEffect(() => {
         const handler = setTimeout(() => {
             setDebouncedPeriodValues(selectedPeriodValues);
         }, 500);
-
         return () => {
             clearTimeout(handler);
         };
-    }, [selectedPeriodValues]);
+    }, [selectedPeriodValues, setDebouncedPeriodValues]);
 
     function format_participant_type(participant_type) {
         if (participant_type === "Individuals") return "FIZ";
@@ -41,14 +35,11 @@ function GraphBlock({id, onDuplicateGraphClick}) {
     const baseRequestParams = useMemo(
         () => ({
             ticker: selectedGeneralValues.ticker.split(" ")[0],
-            participant_type: format_participant_type(
-                selectedGeneralValues.participantTypes
-            ),
+            participant_type: format_participant_type(selectedGeneralValues.participantTypes),
             data_types: selectedGeneralValues["dataTypes"],
         }),
         [selectedGeneralValues]
     );
-
     const mainGraphRequestParams = useMemo(
         () => ({
             ...baseRequestParams,
@@ -57,7 +48,6 @@ function GraphBlock({id, onDuplicateGraphClick}) {
         }),
         [baseRequestParams, debouncedPeriodValues]
     );
-
     const oscillatorRequestParams = useMemo(
         () => ({
             ...mainGraphRequestParams,
@@ -66,51 +56,28 @@ function GraphBlock({id, onDuplicateGraphClick}) {
         [mainGraphRequestParams, selectedOscillatorValues]
     );
 
-    const toggleCollapse = () => {
-        setIsCollapsed(!isCollapsed);
-    };
-
-    const togglePanel = () => {
-        setIsPanelCollapsed(!isPanelCollapsed);
-    };
-
-    const handleGeneralChange = (values) => {
-        setSelectedGeneralValues(values);
-    };
-
-    const handlePeriodChange = (values) => {
-        setSelectedPeriodValues(values);
-    };
-
-    const handleCurveChange = (values) => {
-        setSelectedCurveValues(values);
-    };
-
-    const handleOscillatorChange = (values) => {
-        setSelectedOscillatorValues(values);
-    };
+    const handleCollapseClick = () => setIsCollapsed(!isCollapsed);
+    const handleTogglePanelClick = () => setIsPanelCollapsed(!isPanelCollapsed);
 
     return (
         <div
-            className={`bg-background-block rounded-[40px] w-full ${isCollapsed ? "h-[66px] flex-shrink-0" : "h-[600px]"} flex-shrink-0 flex flex-col overflow-hidden transition-all duration-300`}
-        >
+            className={`bg-background-block rounded-[40px] w-full pt-5 ${isCollapsed ? "h-[88px]" : "h-[calc(100vh-64px)]"} flex-shrink-0 flex flex-col overflow-hidden`}>
             <GraphBlockHeader
-                onCollapseClick={toggleCollapse}
-                onTogglePanelClick={togglePanel}
+                onCollapseClick={handleCollapseClick}
+                onTogglePanelClick={handleTogglePanelClick}
                 onDuplicateGraphClick={() => onDuplicateGraphClick(id)}
                 isCollapsed={isCollapsed}
+                isPanelCollapsed={isPanelCollapsed}
                 requestParameters={oscillatorRequestParams}
                 is_oscillator={selectedCurveValues.curves.includes("oscillator")}
-            ></GraphBlockHeader>
-            <div
-                className={`flex-1 flex flex-col pl-8 pr-8 pb-8 gap-8 ${isCollapsed ? "hidden" : ""}`}
-            >
+            />
+            <div className={`flex-1 flex flex-col pl-8 pr-8 pb-8 gap-8${isCollapsed ? " hidden" : ""}`}>
                 {!isPanelCollapsed && (
                     <Panel
-                        onGeneralChange={handleGeneralChange}
-                        onPeriodChange={handlePeriodChange}
-                        onCurvesChange={handleCurveChange}
-                        onOscillatorChange={handleOscillatorChange}
+                        onGeneralChange={setSelectedGeneralValues}
+                        onPeriodChange={setSelectedPeriodValues}
+                        onCurvesChange={setSelectedCurveValues}
+                        onOscillatorChange={setSelectedOscillatorValues}
                         selectedGeneralValues={selectedGeneralValues}
                         selectedPeriodValues={selectedPeriodValues}
                         selectedCurveValues={selectedCurveValues}
@@ -119,7 +86,7 @@ function GraphBlock({id, onDuplicateGraphClick}) {
                         setActivePanelTab={setActivePanelTab}
                         participantTypes={selectedGeneralValues["participantTypes"]}
                         dataTypes={selectedGeneralValues["dataTypes"]}
-                    ></Panel>
+                    />
                 )}
                 <Graph
                     requestParameters={mainGraphRequestParams}
@@ -128,8 +95,7 @@ function GraphBlock({id, onDuplicateGraphClick}) {
                     participantTypes={selectedGeneralValues["participantTypes"]}
                     is_oscillator={false}
                     api_url={"http://127.0.0.1:9091/get_all_data"}
-                ></Graph>
-
+                />
                 {selectedCurveValues.curves.includes("oscillator") && (
                     <Graph
                         requestParameters={oscillatorRequestParams}
@@ -138,11 +104,11 @@ function GraphBlock({id, onDuplicateGraphClick}) {
                         participantTypes={selectedGeneralValues["participantTypes"]}
                         is_oscillator={true}
                         api_url={"http://127.0.0.1:9091/get_oscillator_data"}
-                    ></Graph>
+                    />
                 )}
             </div>
         </div>
     );
 }
 
-export default GraphBlock;
+export default React.memo(GraphBlock);

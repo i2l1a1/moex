@@ -3,7 +3,7 @@ import GraphBlockHolder from './components/graph_block_holder/GraphBlockHolder.j
 
 function App() {
   return (
-    <div className="min-h-screen font-body bg-main-bg text-main-text text-base leading-5 p-8 flex flex-col">
+    <div className="h-screen w-screen bg-main-bg text-main-text text-base leading-5 flex flex-col">
       <GraphBlockHolder />
     </div>
   );

@@ -7,6 +7,7 @@ function GraphBlockHeader({
                               onTogglePanelClick,
                               onDuplicateGraphClick,
                               isCollapsed,
+                              isPanelCollapsed,
                               requestParameters,
                               is_oscillator
                           }) {
@@ -29,28 +30,27 @@ function GraphBlockHeader({
     }
 
     return (
-        <div className={`flex justify-between items-center ml-8 mr-[18px] ${isCollapsed ? "mb-5" : ""}`}>
+        <div className={`flex justify-between items-center ml-8 mr-[18px] ${isPanelCollapsed ? "mb-5" : ""}`}>
             <ElementHorizontalList gap_class={"gap-1"}>
                 <TextForGraphBlockHeader
-                    graph_header={`${requestParameters.ticker} · 
-                    ${format_date(requestParameters.from_data)}–${format_date(requestParameters.till_date)} · 
-                    ${format_participant_type(requestParameters.participant_type)}${is_oscillator ? " · " : ""} 
-                    ${format_oscillator_number_of_weeks(requestParameters.number_of_weeks)}`}></TextForGraphBlockHeader>
+                    graph_header={`${requestParameters?.ticker || ''} · ${format_date(requestParameters?.from_data)}–${format_date(requestParameters?.till_date)} · ${format_participant_type(requestParameters?.participant_type)}${is_oscillator ? " · " : ""} ${format_oscillator_number_of_weeks(requestParameters?.number_of_weeks)}`}
+                />
                 <button onClick={onCollapseClick}>
                     <img className={`transition-transform duration-200 ${isCollapsed ? "-rotate-90" : ""}`}
-                         src="collapse_graph.svg" alt="collapse graph"/>
+                         src="/collapse_graph.svg" alt="collapse graph"/>
                 </button>
             </ElementHorizontalList>
             <ElementHorizontalList gap_class={"gap-1"}>
                 <button onClick={onTogglePanelClick}>
-                    <img src="toggle_panel.svg" alt="toggle panel"/>
+                    <img src="/toggle_panel.svg" alt="toggle panel"/>
                 </button>
                 <button onClick={onDuplicateGraphClick}>
-                    <img src="duplicate_graph.svg" alt="duplicate graph"/>
+                    <img src="/duplicate_graph.svg" alt="duplicate graph"/>
                 </button>
-                <img src="delete_graph.svg" alt="delete graph"/>
+                <img src="/delete_graph.svg" alt="delete graph"/>
             </ElementHorizontalList>
-        </div>);
+        </div>
+    );
 }
 
 export default GraphBlockHeader;
