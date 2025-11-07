@@ -6,8 +6,9 @@ import {initialGeneralValues} from "../panel/controller_lists/generalDefaults.js
 import {initialPeriodValues} from "../panel/controller_lists/periodDefaults.js";
 import Graph from "../graph/Graph.jsx";
 import {initialCurveValues} from "../panel/controller_lists/curveDefaults.js";
+import {initialOscillatorValues} from "../panel/controller_lists/oscillatorDefaults.js"; // Ensure this is imported if needed
 
-function GraphBlock() {
+function GraphBlock({id, onDuplicateGraphClick}) {
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [isPanelCollapsed, setIsPanelCollapsed] = useState(false);
     const [selectedGeneralValues, setSelectedGeneralValues] =
@@ -18,9 +19,7 @@ function GraphBlock() {
         useState(initialPeriodValues);
     const [selectedCurveValues, setSelectedCurveValues] =
         useState(initialCurveValues);
-    const [selectedOscillatorValues, setSelectedOscillatorValues] = useState({
-        weeks: 20,
-    });
+    const [selectedOscillatorValues, setSelectedOscillatorValues] = useState(initialOscillatorValues);
     const [activePanelTab, setActivePanelTab] = useState("general");
 
     useEffect(() => {
@@ -93,14 +92,12 @@ function GraphBlock() {
 
     return (
         <div
-            className={`fixed bg-background-block rounded-[40px] pt-5 ${
-                isCollapsed ? "top-8 left-8 right-8" : "inset-8"
-            } flex flex-col overflow-hidden
-                ${isPanelCollapsed ? "gap-5" : "gap-[6px]"}`}
+            className={`bg-background-block rounded-[40px] w-full ${isCollapsed ? "h-[66px] flex-shrink-0" : "h-[600px]"} flex-shrink-0 flex flex-col overflow-hidden transition-all duration-300`}
         >
             <GraphBlockHeader
                 onCollapseClick={toggleCollapse}
                 onTogglePanelClick={togglePanel}
+                onDuplicateGraphClick={() => onDuplicateGraphClick(id)}
                 isCollapsed={isCollapsed}
                 requestParameters={oscillatorRequestParams}
                 is_oscillator={selectedCurveValues.curves.includes("oscillator")}

@@ -2,7 +2,14 @@ import "../../App.css";
 import ElementHorizontalList from "../additional_components/ElementHorizontalList.jsx";
 import TextForGraphBlockHeader from "./TextForGraphBlockHeader.jsx";
 
-function GraphBlockHeader({onCollapseClick, onTogglePanelClick, isCollapsed, requestParameters, is_oscillator}) {
+function GraphBlockHeader({
+                              onCollapseClick,
+                              onTogglePanelClick,
+                              onDuplicateGraphClick,
+                              isCollapsed,
+                              requestParameters,
+                              is_oscillator
+                          }) {
     function format_date(date_raw) {  // YYYY-MM-DD -> DD.MM.YYYY
         if (!date_raw) {
             return "...";
@@ -38,7 +45,9 @@ function GraphBlockHeader({onCollapseClick, onTogglePanelClick, isCollapsed, req
                 <button onClick={onTogglePanelClick}>
                     <img src="toggle_panel.svg" alt="toggle panel"/>
                 </button>
-                <img src="duplicate_graph.svg" alt="duplicate graph"/>
+                <button onClick={onDuplicateGraphClick}>
+                    <img src="duplicate_graph.svg" alt="duplicate graph"/>
+                </button>
                 <img src="delete_graph.svg" alt="delete graph"/>
             </ElementHorizontalList>
         </div>);

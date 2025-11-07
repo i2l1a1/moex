@@ -12,12 +12,19 @@ import {
     YAxis,
 } from "recharts";
 import useFetch from "../../hooks/useFetch.jsx";
-import {curveMapping} from "./curves.js";
+import { curveMapping } from "./curves.js";
 import CustomTooltip from "./CustomTooltip.jsx";
 import processData from "./processData.js";
-import {calculatePriceTicks} from "./calculatePriceTicks.js";
+import { calculatePriceTicks } from "./calculatePriceTicks.js";
 
-function Graph({requestParameters, selectedCurvesToRender, dataTypes, participantTypes, is_oscillator, api_url}) {
+function Graph({
+    requestParameters,
+    selectedCurvesToRender,
+    dataTypes,
+    participantTypes,
+    is_oscillator,
+    api_url,
+}) {
     if (is_oscillator) {
         if (participantTypes === "Individuals") {
             selectedCurvesToRender = ["oscillator_FIZ"];
@@ -35,24 +42,28 @@ function Graph({requestParameters, selectedCurvesToRender, dataTypes, participan
         );
     }
 
-    const {data, loading, error} = useFetch(
-        api_url,
-        requestParameters
-    );
+    const { data, loading, error } = useFetch(api_url, requestParameters);
 
     const processedData = processData(data);
 
-    if (loading) return (
-        <div className="loading_and_error_message text-gray">Loading...</div>
-    );
-    if (error) return (
-        <div className="loading_and_error_message text-error">An error occurred. Please try again later.</div>
-    );
+    if (loading)
+        return (
+            <div className="loading_and_error_message text-gray">
+                Loading...
+            </div>
+        );
+    if (error)
+        return (
+            <div className="loading_and_error_message text-error">
+                An error occurred. Please try again later.
+            </div>
+        );
 
     const labelColor = "#5e666e";
     const tickColor = "#5e666e";
 
-    const {priceDomainMin, priceDomainMax, priceTicks} = calculatePriceTicks(processedData);
+    const { priceDomainMin, priceDomainMax, priceTicks } =
+        calculatePriceTicks(processedData);
 
     return (
         <ResponsiveContainer className="w-full flex-1">
@@ -70,40 +81,48 @@ function Graph({requestParameters, selectedCurvesToRender, dataTypes, participan
                     dataKey="tradedate"
                     tickSize={6}
                     fontSize={15}
-                    tick={{fill: tickColor}}
-                    axisLine={{stroke: labelColor, strokeWidth: 1}}
-                    tickLine={{stroke: tickColor, strokeWidth: 0}}
+                    tick={{ fill: tickColor }}
+                    axisLine={{ stroke: labelColor, strokeWidth: 1 }}
+                    tickLine={{ stroke: tickColor, strokeWidth: 0 }}
                     minTickGap={32}
                     tickFormatter={(date) =>
                         date ? dayjs(date).format("MMM YYYY") : ""
                     }
                 ></XAxis>
                 <YAxis
-                    axisLine={{stroke: labelColor, strokeWidth: 1}}
-                    tickLine={{stroke: tickColor, strokeWidth: 0}}
+                    axisLine={{ stroke: labelColor, strokeWidth: 1 }}
+                    tickLine={{ stroke: tickColor, strokeWidth: 0 }}
                     tickSize={6}
                     fontSize={15}
-                    tick={{fill: tickColor}}
+                    tick={{ fill: tickColor }}
                     yAxisId="num"
                     label={{
                         value:
                             dataTypes === "Number of contracts"
-                                ? is_oscillator ? "Oscillator" : "Contracts"
-                                : (is_oscillator ? "Oscillator" : "Traders"),
+                                ? is_oscillator
+                                    ? "Oscillator"
+                                    : "Contracts"
+                                : is_oscillator
+                                ? "Oscillator"
+                                : "Traders",
                         angle: -90,
                         position: "insideLeft",
                         offset: -20,
-                        style: {textAnchor: "middle", fill: labelColor, fontSize: 12},
+                        style: {
+                            textAnchor: "middle",
+                            fill: labelColor,
+                            fontSize: 12,
+                        },
                     }}
-                    padding={{bottom: 12}}
+                    padding={{ bottom: 12 }}
                 />
                 <YAxis
-                    axisLine={{stroke: labelColor, strokeWidth: 1}}
-                    tickLine={{stroke: tickColor, strokeWidth: 0}}
+                    axisLine={{ stroke: labelColor, strokeWidth: 1 }}
+                    tickLine={{ stroke: tickColor, strokeWidth: 0 }}
                     yAxisId="pos"
                     orientation="right"
                     tickSize={6}
-                    tick={{fill: tickColor}}
+                    tick={{ fill: tickColor }}
                     domain={[priceDomainMin, priceDomainMax]}
                     ticks={priceTicks}
                     allowDecimals={false}
@@ -118,7 +137,7 @@ function Graph({requestParameters, selectedCurvesToRender, dataTypes, participan
                             fontSize: 12,
                         },
                     }}
-                    padding={{bottom: 12}}
+                    padding={{ bottom: 12 }}
                 />
 
                 <Tooltip
@@ -129,7 +148,7 @@ function Graph({requestParameters, selectedCurvesToRender, dataTypes, participan
                         />
                     }
                 />
-                <Legend/>
+                <Legend />
 
                 <Line
                     key="cost"
