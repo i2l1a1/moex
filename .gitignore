@@ -30,6 +30,8 @@ env/
 .venv/
 frontend/.venv
 server/.venv
+server/get_all_data_test.py
+server/xlsx_data
 
 # Editor / OS
 .vscode/*

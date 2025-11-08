@@ -5,6 +5,7 @@ import TextForGraphBlockHeader from "./TextForGraphBlockHeader.jsx";
 function GraphBlockHeader({
                               onCollapseClick,
                               onTogglePanelClick,
+                              onDownloadTableClick,
                               onDuplicateGraphClick,
                               isCollapsed,
                               isPanelCollapsed,
@@ -44,6 +45,9 @@ function GraphBlockHeader({
             <ElementHorizontalList gap_class={"gap-1"}>
                 <button onClick={onTogglePanelClick}>
                     <img src="/toggle_panel.svg" alt="toggle panel"/>
+                </button>
+                <button onClick={onDownloadTableClick}>
+                    <img src="/download_table.svg" alt="download table"/>
                 </button>
                 <button onClick={onDuplicateGraphClick}>
                     <img src="/duplicate_graph.svg" alt="duplicate graph"/>

@@ -3,6 +3,8 @@ from environs import Env
 from datetime import date, timedelta, datetime
 import pandas as pd
 import holidays
+from fastapi.responses import StreamingResponse
+import io
 
 from data_mapping import cost_ticker
 
@@ -167,8 +169,6 @@ class FetchMoexData:
 
         df_main = self.__add_open_interest_column(data_types, df_main)
 
-        print(df_main.head(5).to_string())
-
         df_main = self.__filter_by_participant_type(participant_type, df_main)
 
         df_main = self.__filter_by_data_types(data_types, df_main)
@@ -229,3 +229,26 @@ class FetchMoexData:
         df_main = self._sanitize_dataframe(df_main)
 
         return df_main
+
+    def downloadTable(self, ticker, participant_type="", data_types="", from_data=str(date.today().isoformat()),
+                      till_date=str(date.today().isoformat()), number_of_weeks=0):
+        main_df = self.fetchFutoiData(
+            ticker,
+            participant_type=participant_type,
+            data_types=data_types,
+            from_data=from_data,
+            till_date=till_date
+        )
+        oscillator_df = self.fetchOscillatorData(
+            ticker,
+            participant_type=participant_type,
+            data_types=data_types,
+            from_data=from_data,
+            till_date=till_date,
+            number_of_weeks=number_of_weeks,
+        )
+        output = io.BytesIO()
+        merged_df = pd.merge(main_df, oscillator_df, on=['tradedate', 'clgroup'], how='left')
+        merged_df.to_excel(output, index=False, sheet_name='Sheet1', engine='xlsxwriter')  # type: ignore
+        output.seek(0)
+        return StreamingResponse(output)

@@ -3,6 +3,7 @@ import GraphBlockHeader from "./GraphBlockHeader.jsx";
 import React, {useMemo, useEffect} from "react";
 import Panel from "../panel/Panel.jsx";
 import Graph from "../graph/Graph.jsx";
+import {downloadTable} from "../../utils/downloadTable.js";
 
 function GraphBlock({
                         id,
@@ -59,6 +60,11 @@ function GraphBlock({
 
     const handleCollapseClick = () => setIsCollapsed(!isCollapsed);
     const handleTogglePanelClick = () => setIsPanelCollapsed(!isPanelCollapsed);
+    const handleDownloadTableClick = () => {
+        console.log(oscillatorRequestParams);
+        const tableName = `data_${id}_${oscillatorRequestParams.ticker}_from_${oscillatorRequestParams.from_data}_till_${oscillatorRequestParams.till_date}.xlsx`;
+        downloadTable("http://127.0.0.1:9091/get_table", oscillatorRequestParams, tableName);
+    };
 
     return (
         <div
@@ -66,6 +72,7 @@ function GraphBlock({
             <GraphBlockHeader
                 onCollapseClick={handleCollapseClick}
                 onTogglePanelClick={handleTogglePanelClick}
+                onDownloadTableClick={handleDownloadTableClick}
                 onDuplicateGraphClick={() => onDuplicateGraphClick(id)}
                 onDeleteGraphClick={() => onDeleteGraphClick(id)}
                 isCollapsed={isCollapsed}
@@ -96,7 +103,7 @@ function GraphBlock({
                     dataTypes={selectedGeneralValues["dataTypes"]}
                     participantTypes={selectedGeneralValues["participantTypes"]}
                     is_oscillator={false}
-                    api_url={"http://127.0.0.1:9091/get_all_data"}
+                    api_url={`${import.meta.env.VITE_API_URL || "http://127.0.0.1:9091"}/get_futoi_data`}
                 />
                 {selectedCurveValues.curves.includes("oscillator") && (
                     <Graph
@@ -105,7 +112,7 @@ function GraphBlock({
                         dataTypes={selectedGeneralValues["dataTypes"]}
                         participantTypes={selectedGeneralValues["participantTypes"]}
                         is_oscillator={true}
-                        api_url={"http://127.0.0.1:9091/get_oscillator_data"}
+                        api_url={`${import.meta.env.VITE_API_URL || "http://127.0.0.1:9091"}/get_oscillator_data`}
                     />
                 )}
             </div>
