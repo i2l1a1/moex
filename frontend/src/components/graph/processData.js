@@ -49,6 +49,8 @@ export default function processData(data) {
                 if (open_interest !== null && open_interest !== undefined) {
                     processedData[tradedate].open_interest = open_interest;
                 }
+            } else {
+                processedData[tradedate].cost = cost;
             }
         });
     }

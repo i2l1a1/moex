@@ -6,7 +6,7 @@ import holidays
 from fastapi.responses import StreamingResponse
 import io
 
-from data_mapping import cost_ticker
+from data_mapping import cost_mapping
 
 env = Env()
 env.read_env("../.env")
@@ -45,7 +45,13 @@ class FetchMoexData:
             cur_till = chunk_end.date().isoformat()
 
             url_numbers = f"{moex_api_base_url}/iss/analyticalproducts/futoi/securities/{ticker}.json?from={cur_from}&till={cur_till}&latest=1"
-            url_costs = f"{moex_api_base_url}/iss/engines/stock/markets/shares/boards/tqbr/securities/{cost_ticker[ticker]}/candles.json?from={cur_from}&till={cur_till}&interval=24"
+
+            url_costs = "iss/engines/stock/markets/shares/boards/tqbr/securities"
+            if cost_mapping[ticker].url == "futures":
+                url_costs = "iss/engines/futures/markets/forts/boards/rfud/securities"
+            elif cost_mapping[ticker].url == "custom":
+                pass
+            url_costs = f"{moex_api_base_url}/{url_costs}/{cost_mapping[ticker].ticker}/candles.json?from={cur_from}&till={cur_till}&interval=24"
 
             resp_numbers = requests.get(url_numbers, headers=headers).json()
             resp_costs = requests.get(url_costs, headers=headers).json()
@@ -93,11 +99,17 @@ class FetchMoexData:
             return df_main.drop(columns=['pos', 'pos_long', 'pos_short'])
 
     def __merge_all_dataframes(self, df_main, df_costs):
-        return df_main.merge(df_costs[['tradedate', 'cost']], on='tradedate', how='left')
+        if not df_main.empty and not df_costs.empty:
+            return df_main.merge(df_costs[['tradedate', 'cost']], on='tradedate', how='outer')
+        elif not df_main.empty:
+            return df_main
+        elif not df_costs.empty:
+            return df_costs
+        return pd.DataFrame()
 
     def __drop_nans_and_holidays(self, df_main):
         try:
-            df_main = df_main[df_main['cost'].notna()].reset_index(drop=True)
+            # df_main = df_main[df_main['cost'].notna()].reset_index(drop=True)
             start_year = df_main['tradedate'].min().year
             end_year = df_main['tradedate'].max().year
             ru_holidays = holidays.country_holidays("RU", years=range(start_year, end_year + 1))
@@ -112,6 +124,9 @@ class FetchMoexData:
         return df_main
 
     def __add_oscillator_column(self, participant_type, df_main, number_of_weeks, data_types):
+        if "clgroup" not in df_main.columns:
+            return df_main
+
         pos_col = 'pos' if data_types == "Number of contracts" else 'pos_num'
         window_str = f"{number_of_weeks * 7}D"
 
@@ -149,8 +164,7 @@ class FetchMoexData:
         return df_main
 
     def _sanitize_dataframe(self, df: pd.DataFrame):
-        df = df.where(pd.notna(df), None)
-        return df
+        return df.replace({pd.NA: None, float('nan'): None, pd.NaT: None})
 
     def __calculate_date_by_weeks(self, number_of_weeks):
         today = date.today()
@@ -161,11 +175,22 @@ class FetchMoexData:
                        till_date=str(date.today().isoformat())):
         response_numbers, response_costs = self.__fetch_json_from_moex(ticker, from_data, till_date)
 
-        if not response_numbers['columns'] or response_numbers['data'] == [] or not response_costs['columns'] or \
-                response_costs['data'] == []:
-            return pd.DataFrame(columns=[])
+        print(f"response_numbers: [{ticker}]", response_numbers)
+        print(f"response_costs: [{ticker}]", response_costs)
+
+        # print()
+        # print(f"response_numbers[{ticker}]", response_numbers)
+        # print(f"response_costs[{ticker}]", response_costs)
+        # print()
+
+        # if not response_numbers['columns'] or response_numbers['data'] == [] or not response_costs['columns'] or \
+        #         response_costs['data'] == []:
+        #     return pd.DataFrame(columns=[])
 
         df_main, df_costs = self.__build_dataframes_from_json(response_numbers, response_costs)
+
+        if df_main.empty and df_costs.empty:
+            return pd.DataFrame(columns=[])
 
         df_main = self.__add_open_interest_column(data_types, df_main)
 
@@ -180,6 +205,18 @@ class FetchMoexData:
         df_main = self.__add_pos_column(df_main)
 
         df_main = self._sanitize_dataframe(df_main)
+
+        # print(f"\n=== {ticker} ===\ndf_main:")
+        # print(df_main.to_string())
+        # print("\ndf_costs:")
+        # print(df_costs.to_string())
+        # print()
+
+        print(f"\n=== {ticker} ===\ndf_main:")
+        print(df_main.to_string())
+        print("\ndf_costs:")
+        print(df_costs.to_string())
+        print()
 
         return df_main
 
@@ -199,9 +236,9 @@ class FetchMoexData:
 
         response_numbers, response_costs = self.__fetch_json_from_moex(ticker, api_start_date, till_date)
 
-        if not response_numbers['columns'] or response_numbers['data'] == [] or not response_costs['columns'] or \
-                response_costs['data'] == []:
-            return pd.DataFrame(columns=[])
+        # if not response_numbers['columns'] or response_numbers['data'] == [] or not response_costs['columns'] or \
+        #         response_costs['data'] == []:
+        #     return pd.DataFrame(columns=[])
 
         df_main, df_costs = self.__build_dataframes_from_json(response_numbers, response_costs)
 
@@ -247,8 +284,24 @@ class FetchMoexData:
             till_date=till_date,
             number_of_weeks=number_of_weeks,
         )
+
+        # print(f"\n=== {ticker} ===\nmain_df:")
+        # print(main_df)
+        # print("\noscillator_df:")
+        # print(oscillator_df)
+        # print()
+
         output = io.BytesIO()
-        merged_df = pd.merge(main_df, oscillator_df, on=['tradedate', 'clgroup'], how='left')
-        merged_df.to_excel(output, index=False, sheet_name='Sheet1', engine='xlsxwriter')  # type: ignore
+        merged_df = pd.DataFrame()
+
+        if not main_df.empty and not oscillator_df.empty:
+            merged_df = pd.merge(main_df, oscillator_df, on=['tradedate', 'clgroup'], how='outer')
+        elif not main_df.empty:
+            merged_df = main_df
+        elif not oscillator_df.empty:
+            merged_df = oscillator_df
+
+        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:  # type: ignore
+            merged_df.to_excel(writer, index=False, sheet_name='Sheet1')
         output.seek(0)
         return StreamingResponse(output)
