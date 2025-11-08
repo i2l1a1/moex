@@ -6,7 +6,6 @@ import {initialCurveValues} from "../panel/controller_lists/curveDefaults.js";
 import {initialOscillatorValues} from "../panel/controller_lists/oscillatorDefaults.js";
 
 function GraphBlockHolder() {
-    console.log("GraphBlockHolder render");
     const [graphBlocks, setGraphBlocks] = useState({
         1: {
             id: 1,

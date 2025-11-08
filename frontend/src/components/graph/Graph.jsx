@@ -44,9 +44,6 @@ function Graph({
 
     const {data, loading, error} = useFetch(api_url, requestParameters);
 
-    console.log(requestParameters.ticker);
-    console.log(data);
-
     const processedData = processData(data);
 
     if (loading)

@@ -18,7 +18,6 @@ function GraphBlock({
                         onDuplicateGraphClick,
                         onDeleteGraphClick
                     }) {
-    console.log('GraphBlock render', id);
     useEffect(() => {
         const handler = setTimeout(() => {
             setDebouncedPeriodValues(selectedPeriodValues);
@@ -61,7 +60,6 @@ function GraphBlock({
     const handleCollapseClick = () => setIsCollapsed(!isCollapsed);
     const handleTogglePanelClick = () => setIsPanelCollapsed(!isPanelCollapsed);
     const handleDownloadTableClick = () => {
-        console.log(oscillatorRequestParams);
         const tableName = `data_${id}_${oscillatorRequestParams.ticker}_from_${oscillatorRequestParams.from_data}_till_${oscillatorRequestParams.till_date}.xlsx`;
         downloadTable("http://127.0.0.1:9091/get_table", oscillatorRequestParams, tableName);
     };
