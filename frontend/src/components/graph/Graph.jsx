@@ -17,12 +17,10 @@ import processData from "./processData.js";
 import {calculatePriceTicks} from "./calculatePriceTicks.js";
 
 function Graph({
-                   requestParameters,
                    selectedCurvesToRender,
                    dataTypes,
                    participantTypes,
                    is_oscillator,
-                   api_url,
                    data: externalData,
                    loading: externalLoading,
                    error: externalError,
@@ -68,6 +66,26 @@ function Graph({
 
     const {priceDomainMin, priceDomainMax, priceTicks} =
         calculatePriceTicks(processedData);
+
+    const createDotFunction = (dataKey) => {
+        const isNull = (val) => val === null || val === undefined;
+
+        return (props) => {
+            const {payload, index, cx, cy, stroke} = props;
+            const currentValue = payload[dataKey];
+
+            if (isNull(currentValue)) return null;
+
+            const prevValue = index > 0 ? processedData[index - 1]?.[dataKey] : null;
+            const nextValue = index < processedData.length - 1 ? processedData[index + 1]?.[dataKey] : null;
+
+            if (isNull(prevValue) && isNull(nextValue)) {
+                return <circle cx={cx} cy={cy} r={1.2} fill={stroke}/>;
+            }
+
+            return null;
+        };
+    };
 
     return (
         <ResponsiveContainer className="w-full flex-1">
@@ -161,7 +179,8 @@ function Graph({
                     dataKey="cost"
                     stroke="#888"
                     name="Price"
-                    dot={false}
+                    dot={createDotFunction("cost")}
+                    connectNulls={false}
                 />
 
                 {selectedCurvesToRender.map((curveName) => {
@@ -175,7 +194,8 @@ function Graph({
                                 dataKey={curveInfo.dataKey}
                                 stroke={curveInfo.stroke}
                                 name={curveInfo.name}
-                                dot={false}
+                                dot={createDotFunction(curveInfo.dataKey)}
+                                connectNulls={false}
                             />
                         );
                     }
