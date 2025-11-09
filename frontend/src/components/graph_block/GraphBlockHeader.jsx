@@ -12,8 +12,7 @@ function GraphBlockHeader({
                               requestParameters,
                               is_oscillator,
                               onDeleteGraphClick,
-                              mainMisses,
-                              costMisses
+                              missingCounts
                           }) {
     function format_date(date_raw) {  // YYYY-MM-DD -> DD.MM.YYYY
         if (!date_raw) {
@@ -34,7 +33,10 @@ function GraphBlockHeader({
     }
 
     const handleShowStatisticsClick = () => {
-        alert(`Main data misses: ${mainMisses}\nCost data misses: ${costMisses}`);
+        const statisticsText = Object.entries(missingCounts || {})
+            .map(([column, count]) => `${column}: ${count}`)
+            .join('\n');
+        alert(statisticsText || 'No misses data.');
     };
 
     return (

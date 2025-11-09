@@ -24,8 +24,7 @@ async def get_futoi_data(req_parameters: AllDataRequestParameters):
     )
     return {
         "data": futoi_data["data"].to_dict(orient="records"),
-        "main_misses": futoi_data["main_misses"],
-        "cost_misses": futoi_data["cost_misses"],
+        "missing_counts": futoi_data["missing_counts"],
     }
 
 

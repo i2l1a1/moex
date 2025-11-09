@@ -88,8 +88,7 @@ function GraphBlock({
                 isPanelCollapsed={isPanelCollapsed}
                 requestParameters={oscillatorRequestParams}
                 is_oscillator={selectedCurveValues.curves.includes("oscillator")}
-                mainMisses={mainGraphData?.main_misses ?? 0}
-                costMisses={mainGraphData?.cost_misses ?? 0}
+                missingCounts={mainGraphData?.missing_counts ?? {}}
             />
             <div className={`flex-1 flex flex-col pl-8 pr-8 pb-8 gap-8${isCollapsed ? " hidden" : ""}`}>
                 {!isPanelCollapsed && (

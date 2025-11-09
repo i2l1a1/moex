@@ -18,5 +18,4 @@ class OscillatorDataRequestParameters(AllDataRequestParameters):
 
 class FutoiDataResponse(BaseModel):
     data: list[dict]
-    main_misses: int
-    cost_misses: int
+    missing_counts: dict[str, int]

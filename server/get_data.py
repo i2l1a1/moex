@@ -82,7 +82,7 @@ class FetchMoexData:
         if 'tradedate' in df_costs.columns:
             df_costs = df_costs.sort_values(by='tradedate', ascending=True)
 
-        return df_main, df_costs
+        return df_main, df_costs, list(set(df_main.columns) | set(df_costs.columns))
 
     def __add_open_interest_column(self, data_types, df_main):
         if data_types == "Number of contracts":
@@ -168,10 +168,16 @@ class FetchMoexData:
     def _sanitize_dataframe(self, df: pd.DataFrame):
         return df.replace({pd.NA: None, float('nan'): None, pd.NaT: None})
 
-    def __count_missing_values(self, df_main):
-        main_misses = df_main['ticker'].isnull().sum() if 'ticker' in df_main else 0
-        cost_misses = df_main['cost'].isnull().sum() if 'cost' in df_main else 0
-        return main_misses, cost_misses
+    def __count_missing_values(self, initial_columns, df_main):
+        print(df_main.to_string())
+        initial_columns += ['pos_num', 'open_interest']
+        null_counts = df_main.isnull().sum()
+
+        missing_counts = {
+            col: int(null_counts[col]) for col in initial_columns if col in null_counts
+        }
+
+        return missing_counts
 
     def __calculate_date_by_weeks(self, number_of_weeks):
         today = date.today()
@@ -182,7 +188,7 @@ class FetchMoexData:
                        till_date=str(date.today().isoformat())):
         response_numbers, response_costs = self.__fetch_json_from_moex(ticker, from_data, till_date)
 
-        df_main, df_costs = self.__build_dataframes_from_json(response_numbers, response_costs)
+        df_main, df_costs, initial_columns = self.__build_dataframes_from_json(response_numbers, response_costs)
 
         if df_main.empty and df_costs.empty:
             return pd.DataFrame(columns=[])
@@ -201,9 +207,9 @@ class FetchMoexData:
 
         df_main = self._sanitize_dataframe(df_main)
 
-        main_misses, cost_misses = self.__count_missing_values(df_main)
+        missing_counts = self.__count_missing_values(initial_columns, df_main)
 
-        return {"data": df_main, "main_misses": main_misses, "cost_misses": cost_misses}
+        return {"data": df_main, "missing_counts": missing_counts}
 
     def fetchOscillatorData(self, ticker,
                             participant_type="",
@@ -221,7 +227,7 @@ class FetchMoexData:
 
         response_numbers, response_costs = self.__fetch_json_from_moex(ticker, api_start_date, till_date)
 
-        df_main, df_costs = self.__build_dataframes_from_json(response_numbers, response_costs)
+        df_main, df_costs, _ = self.__build_dataframes_from_json(response_numbers, response_costs)
 
         df_main = self.__filter_by_participant_type(participant_type, df_main)
 
@@ -253,7 +259,7 @@ class FetchMoexData:
 
         response_numbers, response_costs = self.__fetch_json_from_moex(ticker, from_data, till_date)
 
-        df_main, df_costs = self.__build_dataframes_from_json(response_numbers, response_costs)
+        df_main, df_costs, _ = self.__build_dataframes_from_json(response_numbers, response_costs)
 
         df_main = self.__filter_by_participant_type(participant_type, df_main)
 
