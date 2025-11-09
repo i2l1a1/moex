@@ -70,14 +70,17 @@ class FetchMoexData:
 
     def __build_dataframes_from_json(self, response_numbers, response_costs):
         df_main = pd.DataFrame(response_numbers["data"], columns=response_numbers["columns"])
-        df_costs = pd.DataFrame(response_costs['data'], columns=response_costs['columns'])[
-            ['close', 'begin']]
-        df_costs.columns = ['cost', 'tradedate']
-        df_costs['tradedate'] = pd.to_datetime(df_costs['tradedate']).dt.date
-        df_main['tradedate'] = pd.to_datetime(df_main['tradedate']).dt.date
-
-        df_main = df_main.sort_values(by='tradedate', ascending=True)
-        df_costs = df_costs.sort_values(by='tradedate', ascending=True)
+        df_main.drop(['sess_id', 'seqnum', 'systime', 'trade_session_date'], axis=1, inplace=True, errors='ignore')
+        df_costs = pd.DataFrame(response_costs['data'], columns=response_costs['columns'])
+        if 'close' in df_costs.columns and 'begin' in df_costs.columns:
+            df_costs = df_costs[['close', 'begin']]
+            df_costs.columns = ['cost', 'tradedate']
+            df_costs['tradedate'] = pd.to_datetime(df_costs['tradedate']).dt.date
+        if 'tradedate' in df_main.columns:
+            df_main['tradedate'] = pd.to_datetime(df_main['tradedate']).dt.date
+            df_main = df_main.sort_values(by='tradedate', ascending=True)
+        if 'tradedate' in df_costs.columns:
+            df_costs = df_costs.sort_values(by='tradedate', ascending=True)
 
         return df_main, df_costs
 
@@ -107,7 +110,7 @@ class FetchMoexData:
             return df_costs
         return pd.DataFrame()
 
-    def __drop_nans_and_holidays(self, df_main):
+    def __drop_holidays(self, df_main):
         try:
             start_year = df_main['tradedate'].min().year
             end_year = df_main['tradedate'].max().year
@@ -165,6 +168,12 @@ class FetchMoexData:
     def _sanitize_dataframe(self, df: pd.DataFrame):
         return df.replace({pd.NA: None, float('nan'): None, pd.NaT: None})
 
+    def __count_missing_values(self, df_main):
+        print(df_main.to_string())
+        main_misses = df_main['ticker'].isnull().sum() if 'ticker' in df_main else 0
+        cost_misses = df_main['cost'].isnull().sum() if 'cost' in df_main else 0
+        print(f"\n-------\nmain_misses: {main_misses}\ncost_misses: {cost_misses}\n-------\n")
+
     def __calculate_date_by_weeks(self, number_of_weeks):
         today = date.today()
         start = today - timedelta(weeks=int(number_of_weeks))
@@ -187,11 +196,13 @@ class FetchMoexData:
 
         df_main = self.__merge_all_dataframes(df_main, df_costs)
 
-        df_main = self.__drop_nans_and_holidays(df_main)
+        df_main = self.__drop_holidays(df_main)
 
         df_main = self.__add_pos_column(df_main)
 
         df_main = self._sanitize_dataframe(df_main)
+
+        print(self.__count_missing_values(df_main))
 
         return df_main
 
@@ -219,7 +230,7 @@ class FetchMoexData:
 
         df_main = self.__merge_all_dataframes(df_main, df_costs)
 
-        df_main = self.__drop_nans_and_holidays(df_main)
+        df_main = self.__drop_holidays(df_main)
 
         df_main = self.__add_pos_column(df_main)
 
@@ -248,6 +259,8 @@ class FetchMoexData:
         df_main = self.__filter_by_participant_type(participant_type, df_main)
 
         df_main = self.__merge_all_dataframes(df_main, df_costs)
+
+        # df_main = self.__drop_holidays(df_main)
 
         df_main = self.__add_open_interest_column(data_types, df_main)
 
