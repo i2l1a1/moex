@@ -33,7 +33,7 @@ function GraphBlockHeader({
     }
 
     const handleShowStatisticsClick = () => {
-        const statisticsText = Object.entries(missingCounts || {})
+        const statisticsText = "MISSES:\n" + Object.entries(missingCounts || {})
             .map(([column, count]) => `${column}: ${count}`)
             .join('\n');
         alert(statisticsText || 'No misses data.');

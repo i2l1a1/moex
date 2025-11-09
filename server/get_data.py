@@ -110,13 +110,18 @@ class FetchMoexData:
             return df_costs
         return pd.DataFrame()
 
-    def __drop_holidays(self, df_main):
+    def __drop_holidays_and_unnecessary_dates(self, df_main):
         try:
             start_year = df_main['tradedate'].min().year
             end_year = df_main['tradedate'].max().year
             ru_holidays = holidays.country_holidays("RU", years=range(start_year, end_year + 1))
-            return df_main[df_main['tradedate'].apply(lambda d: d.weekday() < 5 and d not in ru_holidays)].reset_index(
-                drop=True)
+
+            exclude_start = date(2022, 3, 1)
+            exclude_end = date(2022, 3, 23)
+
+            return df_main[df_main['tradedate'].apply(
+                lambda d: d.weekday() < 5 and d not in ru_holidays and not (exclude_start <= d <= exclude_end)
+            )].reset_index(drop=True)
         except Exception:
             return df_main
 
@@ -169,7 +174,6 @@ class FetchMoexData:
         return df.replace({pd.NA: None, float('nan'): None, pd.NaT: None})
 
     def __count_missing_values(self, initial_columns, df_main):
-        print(df_main.to_string())
         initial_columns += ['pos_num', 'open_interest']
         null_counts = df_main.isnull().sum()
 
@@ -191,7 +195,7 @@ class FetchMoexData:
         df_main, df_costs, initial_columns = self.__build_dataframes_from_json(response_numbers, response_costs)
 
         if df_main.empty and df_costs.empty:
-            return pd.DataFrame(columns=[])
+            return {"data": pd.DataFrame(), "missing_counts": {}}
 
         df_main = self.__add_open_interest_column(data_types, df_main)
 
@@ -201,7 +205,7 @@ class FetchMoexData:
 
         df_main = self.__merge_all_dataframes(df_main, df_costs)
 
-        df_main = self.__drop_holidays(df_main)
+        df_main = self.__drop_holidays_and_unnecessary_dates(df_main)
 
         df_main = self.__add_pos_column(df_main)
 
@@ -229,13 +233,16 @@ class FetchMoexData:
 
         df_main, df_costs, _ = self.__build_dataframes_from_json(response_numbers, response_costs)
 
+        if df_main.empty and df_costs.empty:
+            return pd.DataFrame()
+
         df_main = self.__filter_by_participant_type(participant_type, df_main)
 
         df_main = self.__filter_by_data_types(data_types, df_main)
 
         df_main = self.__merge_all_dataframes(df_main, df_costs)
 
-        df_main = self.__drop_holidays(df_main)
+        df_main = self.__drop_holidays_and_unnecessary_dates(df_main)
 
         df_main = self.__add_pos_column(df_main)
 
