@@ -14,3 +14,9 @@ class AllDataRequestParameters(BasicRequestParameters):
 
 class OscillatorDataRequestParameters(AllDataRequestParameters):
     number_of_weeks: int  # example: 12
+
+
+class FutoiDataResponse(BaseModel):
+    data: list[dict]
+    main_misses: int
+    cost_misses: int

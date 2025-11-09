@@ -169,10 +169,9 @@ class FetchMoexData:
         return df.replace({pd.NA: None, float('nan'): None, pd.NaT: None})
 
     def __count_missing_values(self, df_main):
-        print(df_main.to_string())
         main_misses = df_main['ticker'].isnull().sum() if 'ticker' in df_main else 0
         cost_misses = df_main['cost'].isnull().sum() if 'cost' in df_main else 0
-        print(f"\n-------\nmain_misses: {main_misses}\ncost_misses: {cost_misses}\n-------\n")
+        return main_misses, cost_misses
 
     def __calculate_date_by_weeks(self, number_of_weeks):
         today = date.today()
@@ -202,9 +201,9 @@ class FetchMoexData:
 
         df_main = self._sanitize_dataframe(df_main)
 
-        print(self.__count_missing_values(df_main))
+        main_misses, cost_misses = self.__count_missing_values(df_main)
 
-        return df_main
+        return {"data": df_main, "main_misses": main_misses, "cost_misses": cost_misses}
 
     def fetchOscillatorData(self, ticker,
                             participant_type="",

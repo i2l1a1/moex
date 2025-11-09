@@ -4,6 +4,7 @@ import React, {useMemo, useEffect} from "react";
 import Panel from "../panel/Panel.jsx";
 import Graph from "../graph/Graph.jsx";
 import {downloadTable} from "../../utils/downloadTable.js";
+import useFetch from "../../hooks/useFetch.jsx";
 
 function GraphBlock({
                         id,
@@ -57,6 +58,16 @@ function GraphBlock({
         [mainGraphRequestParams, selectedOscillatorValues]
     );
 
+    const {data: mainGraphData, loading: mainGraphLoading, error: mainGraphError} = useFetch(
+        "http://127.0.0.1:9091/get_futoi_data",
+        mainGraphRequestParams
+    );
+
+    const {data: oscillatorData, loading: oscillatorLoading, error: oscillatorError} = useFetch(
+        "http://127.0.0.1:9091/get_oscillator_data",
+        oscillatorRequestParams
+    );
+
     const handleCollapseClick = () => setIsCollapsed(!isCollapsed);
     const handleTogglePanelClick = () => setIsPanelCollapsed(!isPanelCollapsed);
     const handleDownloadTableClick = () => {
@@ -77,6 +88,8 @@ function GraphBlock({
                 isPanelCollapsed={isPanelCollapsed}
                 requestParameters={oscillatorRequestParams}
                 is_oscillator={selectedCurveValues.curves.includes("oscillator")}
+                mainMisses={mainGraphData?.main_misses ?? 0}
+                costMisses={mainGraphData?.cost_misses ?? 0}
             />
             <div className={`flex-1 flex flex-col pl-8 pr-8 pb-8 gap-8${isCollapsed ? " hidden" : ""}`}>
                 {!isPanelCollapsed && (
@@ -101,7 +114,10 @@ function GraphBlock({
                     dataTypes={selectedGeneralValues["dataTypes"]}
                     participantTypes={selectedGeneralValues["participantTypes"]}
                     is_oscillator={false}
-                    api_url={`${import.meta.env.VITE_API_URL || "http://127.0.0.1:9091"}/get_futoi_data`}
+                    api_url="http://127.0.0.1:9091/get_futoi_data"
+                    data={mainGraphData}
+                    loading={mainGraphLoading}
+                    error={mainGraphError}
                 />
                 {selectedCurveValues.curves.includes("oscillator") && (
                     <Graph
@@ -110,7 +126,10 @@ function GraphBlock({
                         dataTypes={selectedGeneralValues["dataTypes"]}
                         participantTypes={selectedGeneralValues["participantTypes"]}
                         is_oscillator={true}
-                        api_url={`${import.meta.env.VITE_API_URL || "http://127.0.0.1:9091"}/get_oscillator_data`}
+                        api_url="http://127.0.0.1:9091/get_oscillator_data"
+                        data={oscillatorData}
+                        loading={oscillatorLoading}
+                        error={oscillatorError}
                     />
                 )}
             </div>

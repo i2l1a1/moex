@@ -11,7 +11,9 @@ function GraphBlockHeader({
                               isPanelCollapsed,
                               requestParameters,
                               is_oscillator,
-                              onDeleteGraphClick
+                              onDeleteGraphClick,
+                              mainMisses,
+                              costMisses
                           }) {
     function format_date(date_raw) {  // YYYY-MM-DD -> DD.MM.YYYY
         if (!date_raw) {
@@ -31,6 +33,10 @@ function GraphBlockHeader({
         return !is_oscillator ? "" : (number_of_weeks !== 1 ? `${number_of_weeks} weeks` : `${number_of_weeks} week`);
     }
 
+    const handleShowStatisticsClick = () => {
+        alert(`Main data misses: ${mainMisses}\nCost data misses: ${costMisses}`);
+    };
+
     return (
         <div className={`flex justify-between items-center ml-8 mr-[18px] ${isPanelCollapsed ? "mb-5" : ""}`}>
             <ElementHorizontalList gap_class={"gap-1"}>
@@ -45,6 +51,9 @@ function GraphBlockHeader({
             <ElementHorizontalList gap_class={"gap-1"}>
                 <button onClick={onTogglePanelClick}>
                     <img src="/toggle_panel.svg" alt="toggle panel"/>
+                </button>
+                <button onClick={handleShowStatisticsClick}>
+                    <img src="/show_statistics.svg" alt="show statistics"/>
                 </button>
                 <button onClick={onDownloadTableClick}>
                     <img src="/download_table.svg" alt="download table"/>

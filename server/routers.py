@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from get_data import FetchMoexData
 from schemas import AllDataRequestParameters, OscillatorDataRequestParameters
+from schemas import FutoiDataResponse
 
 router = APIRouter()
 
@@ -12,15 +13,20 @@ async def just_for_fun():
     return "Wow!"
 
 
-@router.post("/get_futoi_data")
+@router.post("/get_futoi_data", response_model=FutoiDataResponse)
 async def get_futoi_data(req_parameters: AllDataRequestParameters):
-    return moex_data.fetchFutoiData(
+    futoi_data = moex_data.fetchFutoiData(
         req_parameters.ticker,
         participant_type=req_parameters.participant_type,
         data_types=req_parameters.data_types,
         from_data=req_parameters.from_data,
         till_date=req_parameters.till_date
-    ).to_dict(orient="records")
+    )
+    return {
+        "data": futoi_data["data"].to_dict(orient="records"),
+        "main_misses": futoi_data["main_misses"],
+        "cost_misses": futoi_data["cost_misses"],
+    }
 
 
 @router.post("/get_oscillator_data")

@@ -11,7 +11,6 @@ import {
     XAxis,
     YAxis,
 } from "recharts";
-import useFetch from "../../hooks/useFetch.jsx";
 import {curveMapping} from "./curves.js";
 import CustomTooltip from "./CustomTooltip.jsx";
 import processData from "./processData.js";
@@ -24,6 +23,9 @@ function Graph({
                    participantTypes,
                    is_oscillator,
                    api_url,
+                   data: externalData,
+                   loading: externalLoading,
+                   error: externalError,
                }) {
     if (is_oscillator) {
         if (participantTypes === "Individuals") {
@@ -42,9 +44,11 @@ function Graph({
         );
     }
 
-    const {data, loading, error} = useFetch(api_url, requestParameters);
+    const data = externalData;
+    const loading = externalLoading;
+    const error = externalError;
 
-    const processedData = processData(data);
+    const processedData = processData(Array.isArray(data) ? data : data?.data);
 
     if (loading)
         return (
