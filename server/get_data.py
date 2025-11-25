@@ -51,6 +51,11 @@ class FetchMoexData:
                 url_costs = "iss/engines/futures/markets/forts/boards/rfud/securities"
             elif cost_mapping[ticker].url == "custom":
                 pass
+            elif cost_mapping[ticker].url == "index":
+                url_costs = "iss/engines/stock/markets/index/securities"
+            elif cost_mapping[ticker].url == "currency":
+                url_costs = "iss/engines/currency/markets/selt/boardgroups/13/securities"
+
             url_costs = f"{moex_api_base_url}/{url_costs}/{cost_mapping[ticker].ticker}/candles.json?from={cur_from}&till={cur_till}&interval=24"
 
             resp_numbers = requests.get(url_numbers, headers=headers).json()
@@ -272,7 +277,7 @@ class FetchMoexData:
 
         df_main = self.__merge_all_dataframes(df_main, df_costs)
 
-        # df_main = self.__drop_holidays(df_main)
+        df_main = self.__drop_holidays_and_unnecessary_dates(df_main)
 
         df_main = self.__add_open_interest_column(data_types, df_main)
 

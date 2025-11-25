@@ -32,6 +32,7 @@ frontend/.venv
 server/.venv
 server/get_all_data_test.py
 server/xlsx_data
+server/prediction/
 
 # Editor / OS
 .vscode/*
