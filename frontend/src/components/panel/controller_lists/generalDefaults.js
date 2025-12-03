@@ -39,6 +39,7 @@ export const generalOptions = {
         'GLDRUBF золото вечный фьючерс',
         'SBERF сбер вечный фьючерс',
         'GAZPF газпром вечный фьючерс',
+        'UC доллар/юань',
         'NA Invesco QQQ ETF Trust Unit Series 1',
         'SF SPY ETF Trust',
         'RM PTC (мини)',

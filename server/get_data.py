@@ -7,7 +7,14 @@ from fastapi.responses import StreamingResponse
 import io
 
 from data_mapping import cost_mapping
-from custom_costs import fetch_custom_costs_ED, fetch_custom_costs_GD, fetch_custom_costs_SV
+from custom_costs import (
+    fetch_custom_costs_ED,
+    fetch_custom_costs_GD,
+    fetch_custom_costs_SV,
+    fetch_custom_costs_PT,
+    fetch_custom_costs_PD,
+    fetch_custom_costs_UC,
+)
 
 env = Env()
 env.read_env("../.env")
@@ -87,6 +94,33 @@ class FetchMoexData:
                     )
                 elif ticker == "SV":
                     resp_costs = fetch_custom_costs_SV(
+                        self.__fetch_costs_for_ticker,
+                        cost_mapping[ticker].asset_code,
+                        moex_api_base_url,
+                        cur_from,
+                        cur_till,
+                        headers,
+                    )
+                elif ticker == "PT":
+                    resp_costs = fetch_custom_costs_PT(
+                        self.__fetch_costs_for_ticker,
+                        cost_mapping[ticker].asset_code,
+                        moex_api_base_url,
+                        cur_from,
+                        cur_till,
+                        headers,
+                    )
+                elif ticker == "UC":
+                    resp_costs = fetch_custom_costs_UC(
+                        self.__fetch_costs_for_ticker,
+                        cost_mapping[ticker].asset_code,
+                        moex_api_base_url,
+                        cur_from,
+                        cur_till,
+                        headers,
+                    )
+                elif ticker == "PD":
+                    resp_costs = fetch_custom_costs_PD(
                         self.__fetch_costs_for_ticker,
                         cost_mapping[ticker].asset_code,
                         moex_api_base_url,
