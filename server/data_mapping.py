@@ -67,4 +67,5 @@ cost_mapping = {
     "CNYRUBF": TickerInfo(["CNYRUB_TOM"], "currency"),
     "CR": TickerInfo(["CNYRUB_TOM"], "currency"),
     "ED": TickerInfo(["Eu", "Si"], "custom"),
+    "GD": TickerInfo(["GL", "Si"], "custom"),
 }

@@ -33,3 +33,36 @@ def fetch_custom_costs_ED(fetcher, base_codes, moex_api_base_url, cur_from, cur_
     resp_costs_eu = fetcher(base_eu, moex_api_base_url, cur_from, cur_till, headers)
     resp_costs_si = fetcher(base_si, moex_api_base_url, cur_from, cur_till, headers)
     return build_custom_candles(build_custom_costs_ED, resp_costs_eu, resp_costs_si)
+
+
+def build_custom_costs_GD(resp_costs_gl, resp_costs_si):
+    cols_gl = resp_costs_gl["candles"]["columns"]
+    cols_si = resp_costs_si["candles"]["columns"]
+    data_gl = resp_costs_gl["candles"]["data"]
+    data_si = resp_costs_si["candles"]["data"]
+
+    idx_close_gl = cols_gl.index("close")
+    idx_begin_gl = cols_gl.index("begin")
+    idx_close_si = cols_si.index("close")
+
+    rows = []
+    for row_gl, row_si in zip(data_gl, data_si):
+        cost_gl = row_gl[idx_close_gl]
+        cost_si = row_si[idx_close_si]
+        traded_begin = row_gl[idx_begin_gl]
+
+        if cost_gl is None or cost_si in (0, None):
+            synthetic_cost = None
+        else:
+            synthetic_cost = round(cost_gl * 31.1034768 / cost_si, 3)
+
+        rows.append([synthetic_cost, traded_begin])
+
+    return {"columns": ["close", "begin"], "data": rows}
+
+
+def fetch_custom_costs_GD(fetcher, base_codes, moex_api_base_url, cur_from, cur_till, headers):
+    base_gl, base_si = base_codes
+    resp_costs_gl = fetcher(base_gl, moex_api_base_url, cur_from, cur_till, headers)
+    resp_costs_si = fetcher(base_si, moex_api_base_url, cur_from, cur_till, headers)
+    return build_custom_candles(build_custom_costs_GD, resp_costs_gl, resp_costs_si)
