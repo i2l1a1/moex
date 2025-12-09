@@ -14,6 +14,8 @@ from custom_costs import (
     fetch_custom_costs_PT,
     fetch_custom_costs_PD,
     fetch_custom_costs_UC,
+    fetch_custom_costs_RTS,
+    fetch_custom_numbers_RTS,
 )
 
 env = Env()
@@ -67,9 +69,17 @@ class FetchMoexData:
             cur_from = cur.date().isoformat()
             cur_till = chunk_end.date().isoformat()
 
-            url_numbers = f"{moex_api_base_url}/iss/analyticalproducts/futoi/securities/{ticker}.json?from={cur_from}&till={cur_till}&latest=1"
-
-            resp_numbers = requests.get(url_numbers, headers=headers).json()
+            if cost_mapping[ticker].url_type != "custom" or ticker not in ("РТС",):
+                url_numbers = f"{moex_api_base_url}/iss/analyticalproducts/futoi/securities/{ticker}.json?from={cur_from}&till={cur_till}&latest=1"
+                resp_numbers = requests.get(url_numbers, headers=headers).json()
+            else:
+                resp_numbers = fetch_custom_numbers_RTS(
+                    cost_mapping[ticker].asset_code,
+                    moex_api_base_url,
+                    cur_from,
+                    cur_till,
+                    headers,
+                )
 
             if cost_mapping[ticker].url_type != "custom":
                 resp_costs = self.__fetch_costs_for_ticker(ticker, moex_api_base_url, cur_from, cur_till, headers)
@@ -121,6 +131,15 @@ class FetchMoexData:
                     )
                 elif ticker == "PD":
                     resp_costs = fetch_custom_costs_PD(
+                        self.__fetch_costs_for_ticker,
+                        cost_mapping[ticker].asset_code,
+                        moex_api_base_url,
+                        cur_from,
+                        cur_till,
+                        headers,
+                    )
+                elif ticker == "РТС":
+                    resp_costs = fetch_custom_costs_RTS(
                         self.__fetch_costs_for_ticker,
                         cost_mapping[ticker].asset_code,
                         moex_api_base_url,
