@@ -34,7 +34,6 @@ cost_mapping = {
     "NM": TickerInfo(["NLMK"], ""),
     "RB": TickerInfo(["RGBI"], "index"),
     "RI": TickerInfo(["RTSI"], "index"),
-    "RM": TickerInfo(["RTSI"], "index"),
     "RN": TickerInfo(["ROSN"], ""),
     "SBERF": TickerInfo(["SBER"], ""),
     "Si": TickerInfo(["USDRUBF"], "futures"),

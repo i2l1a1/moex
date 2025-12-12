@@ -7,16 +7,6 @@ from fastapi.responses import StreamingResponse
 import io
 
 from data_mapping import cost_mapping
-from custom_costs import (
-    fetch_custom_costs_ED,
-    fetch_custom_costs_GD,
-    fetch_custom_costs_SV,
-    fetch_custom_costs_PT,
-    fetch_custom_costs_PD,
-    fetch_custom_costs_UC,
-    fetch_custom_costs_RTS,
-    fetch_custom_numbers_RTS,
-)
 
 env = Env()
 env.read_env("../.env")
@@ -24,7 +14,47 @@ ALGOPACK_API_KEY = env("ALGOPACK_API_KEY")
 
 
 class FetchMoexData:
-    def __fetch_costs_for_ticker(self, ticker, moex_api_base_url, cur_from, cur_till, headers):
+    moex_api_base_url = "https://apim.moex.com"
+    headers = {'Authorization': f'Bearer {ALGOPACK_API_KEY}'}
+
+    def __fetch_data_for_ticker(self, chunk_fetcher, from_data, till_date, root_key):
+        _min_date = date(2007, 1, 1)
+        try:
+            _from = datetime.fromisoformat(from_data).date()
+        except ValueError:
+            _from = date.today()
+        try:
+            _till = datetime.fromisoformat(till_date).date()
+        except ValueError:
+            _till = date.today()
+
+        _from = _min_date if _from <= _min_date else _from
+        _till = _min_date if _till <= _min_date else _till
+
+        start = datetime.fromisoformat(_from.isoformat())
+        end = datetime.fromisoformat(_till.isoformat())
+
+        data_rows = []
+        cols = None
+
+        cur = start
+        while cur <= end:
+            chunk_end = min(cur + timedelta(days=365), end)
+            cur_from = cur.date().isoformat()
+            cur_till = chunk_end.date().isoformat()
+
+            resp = chunk_fetcher(cur_from, cur_till)
+
+            if cols is None:
+                cols = resp[root_key]["columns"]
+
+            data_rows.extend(resp[root_key]["data"])
+
+            cur = chunk_end + timedelta(days=1)
+
+        return {"columns": cols, "data": data_rows}
+
+    def __fetch_costs_for_ticker(self, ticker, from_data, till_date):
         url_costs = "iss/engines/stock/markets/shares/boards/tqbr/securities"
         url_type = cost_mapping[ticker].url_type
 
@@ -36,131 +66,27 @@ class FetchMoexData:
             url_costs = "iss/engines/currency/markets/selt/boardgroups/13/securities"
 
         asset_code = cost_mapping[ticker].asset_code[0]
-        url_costs = f"{moex_api_base_url}/{url_costs}/{asset_code}/candles.json?from={cur_from}&till={cur_till}&interval=24"
-        return requests.get(url_costs, headers=headers).json()
+
+        def chunk_fetcher(cur_from, cur_till):
+            url = f"{self.moex_api_base_url}/{url_costs}/{asset_code}/candles.json?from={cur_from}&till={cur_till}&interval=24"
+            return requests.get(url, headers=self.headers).json()
+
+        return self.__fetch_data_for_ticker(chunk_fetcher, from_data, till_date, root_key="candles")
+
+    def __fetch_market_data_for_ticker(self, ticker, from_data, till_date):
+        def build_numbers_url(cur_from, cur_till):
+            return f"{self.moex_api_base_url}/iss/analyticalproducts/futoi/securities/{ticker}.json?from={cur_from}&till={cur_till}&latest=1"
+
+        def chunk_fetcher(cur_from, cur_till):
+            return requests.get(build_numbers_url(cur_from, cur_till), headers=self.headers).json()
+
+        return self.__fetch_data_for_ticker(chunk_fetcher, from_data, till_date, root_key="futoi")
 
     def __fetch_json_from_moex(self, ticker, from_data, till_date):
-        _min_date = date(2007, 1, 1)
-        try:
-            _from = datetime.fromisoformat(from_data).date()
-        except ValueError:
-            _from = date.today()
-        try:
-            _till = datetime.fromisoformat(till_date).date()
-        except ValueError:
-            _till = date.today()
-        from_data = _min_date.isoformat() if _from <= _min_date else _from.isoformat()
-        till_date = _min_date.isoformat() if _till <= _min_date else _till.isoformat()
+        resp_numbers = self.__fetch_market_data_for_ticker(ticker, from_data, till_date)
+        resp_costs = self.__fetch_costs_for_ticker(ticker, from_data, till_date)
 
-        moex_api_base_url = "https://apim.moex.com"
-        headers = {'Authorization': f'Bearer {ALGOPACK_API_KEY}'}
-
-        start = datetime.fromisoformat(from_data)
-        end = datetime.fromisoformat(till_date)
-
-        numbers_data = []
-        costs_data = []
-        numbers_cols = None
-        costs_cols = None
-
-        cur = start
-        while cur <= end:
-            chunk_end = min(cur + timedelta(days=365), end)
-            cur_from = cur.date().isoformat()
-            cur_till = chunk_end.date().isoformat()
-
-            if cost_mapping[ticker].url_type != "custom" or ticker not in ("РТС",):
-                url_numbers = f"{moex_api_base_url}/iss/analyticalproducts/futoi/securities/{ticker}.json?from={cur_from}&till={cur_till}&latest=1"
-                resp_numbers = requests.get(url_numbers, headers=headers).json()
-            else:
-                resp_numbers = fetch_custom_numbers_RTS(
-                    cost_mapping[ticker].asset_code,
-                    moex_api_base_url,
-                    cur_from,
-                    cur_till,
-                    headers,
-                )
-
-            if cost_mapping[ticker].url_type != "custom":
-                resp_costs = self.__fetch_costs_for_ticker(ticker, moex_api_base_url, cur_from, cur_till, headers)
-            else:
-                if ticker == "ED":
-                    resp_costs = fetch_custom_costs_ED(
-                        self.__fetch_costs_for_ticker,
-                        cost_mapping[ticker].asset_code,
-                        moex_api_base_url,
-                        cur_from,
-                        cur_till,
-                        headers,
-                    )
-                elif ticker == "GD":
-                    resp_costs = fetch_custom_costs_GD(
-                        self.__fetch_costs_for_ticker,
-                        cost_mapping[ticker].asset_code,
-                        moex_api_base_url,
-                        cur_from,
-                        cur_till,
-                        headers,
-                    )
-                elif ticker == "SV":
-                    resp_costs = fetch_custom_costs_SV(
-                        self.__fetch_costs_for_ticker,
-                        cost_mapping[ticker].asset_code,
-                        moex_api_base_url,
-                        cur_from,
-                        cur_till,
-                        headers,
-                    )
-                elif ticker == "PT":
-                    resp_costs = fetch_custom_costs_PT(
-                        self.__fetch_costs_for_ticker,
-                        cost_mapping[ticker].asset_code,
-                        moex_api_base_url,
-                        cur_from,
-                        cur_till,
-                        headers,
-                    )
-                elif ticker == "UC":
-                    resp_costs = fetch_custom_costs_UC(
-                        self.__fetch_costs_for_ticker,
-                        cost_mapping[ticker].asset_code,
-                        moex_api_base_url,
-                        cur_from,
-                        cur_till,
-                        headers,
-                    )
-                elif ticker == "PD":
-                    resp_costs = fetch_custom_costs_PD(
-                        self.__fetch_costs_for_ticker,
-                        cost_mapping[ticker].asset_code,
-                        moex_api_base_url,
-                        cur_from,
-                        cur_till,
-                        headers,
-                    )
-                elif ticker == "РТС":
-                    resp_costs = fetch_custom_costs_RTS(
-                        self.__fetch_costs_for_ticker,
-                        cost_mapping[ticker].asset_code,
-                        moex_api_base_url,
-                        cur_from,
-                        cur_till,
-                        headers,
-                    )
-                else:
-                    resp_costs = {"candles": {"columns": ["close", "begin"], "data": []}}
-
-            if numbers_cols is None:
-                numbers_cols = resp_numbers['futoi']['columns']
-            if costs_cols is None:
-                costs_cols = resp_costs['candles']['columns']
-
-            numbers_data.extend(resp_numbers['futoi']['data'])
-            costs_data.extend(resp_costs['candles']['data'])
-
-            cur = chunk_end + timedelta(days=1)
-
-        return {'columns': numbers_cols, 'data': numbers_data}, {'columns': costs_cols, 'data': costs_data}
+        return resp_numbers, resp_costs
 
     def __build_dataframes_from_json(self, response_numbers, response_costs):
         df_main = pd.DataFrame(response_numbers["data"], columns=response_numbers["columns"])
