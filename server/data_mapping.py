@@ -74,4 +74,7 @@ cost_mapping = {
     "PLTRUB_TOM": TickerInfo(["PLTRUB_TOM"], "currency"),
     "PLDRUB_TOM": TickerInfo(["PLDRUB_TOM"], "currency"),
     "РТС": TickerInfo(["RI", "RM"], "custom"),
+    "SCNYR": TickerInfo(["CR", "CNYRUBF"], "custom"),
+    "SUSDR": TickerInfo(["Si", "USDRUBF"], "custom"),
+    "SEURR": TickerInfo(["Eu", "EURRUBF"], "custom"),
 }

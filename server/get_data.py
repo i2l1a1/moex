@@ -113,7 +113,7 @@ class FetchMoexData:
 
     def __fetch_ticker_data(self, ticker, from_data, till_date):
         is_custom = cost_mapping[ticker].url_type == "custom"
-        needs_synthetic_nums = is_custom and ticker == "РТС"
+        needs_synthetic_nums = is_custom and ticker in ("РТС", "SCNYR", "SUSDR", "SEURR")
 
         if needs_synthetic_nums:
             base_codes = cost_mapping[ticker].asset_code

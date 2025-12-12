@@ -10,6 +10,8 @@ def compute_custom_numbers(ticker, val_a, val_b):
 
     if ticker == "РТС":
         return round(val_a + val_b / 10, ROUND_PRECISION)
+    if ticker in {"SCNYR", "SUSDR", "SEURR"}:
+        return round(val_a + val_b, ROUND_PRECISION)
 
     return None
 
@@ -76,6 +78,10 @@ def build_custom_costs_dataframe(ticker, base_cost_dfs):
             if a is None or b is None:
                 return None
             return round(a + b / 10, ROUND_PRECISION)
+        if ticker in {"SCNYR", "SUSDR", "SEURR"}:
+            if a is None or b is None:
+                return None
+            return round(a + b, ROUND_PRECISION)
         return None
 
     df["cost"] = df.apply(compute_custom_cost, axis=1)
