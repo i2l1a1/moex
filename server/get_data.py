@@ -7,7 +7,7 @@ from fastapi.responses import StreamingResponse
 import io
 
 from data_mapping import cost_mapping
-from custom_costs_df import build_custom_costs_dataframe
+from custom_costs_df import build_custom_costs_dataframe, build_custom_numbers_dataframe
 
 env = Env()
 env.read_env("../.env")
@@ -18,7 +18,7 @@ class FetchMoexData:
     moex_api_base_url = "https://apim.moex.com"
     headers = {'Authorization': f'Bearer {ALGOPACK_API_KEY}'}
 
-    def __fetch_data_for_ticker(self, chunk_fetcher, from_data, till_date, root_key):
+    def __fetch_data_in_chunks(self, chunk_fetcher, from_data, till_date, root_key):
         _min_date = date(2007, 1, 1)
         try:
             _from = datetime.fromisoformat(from_data).date()
@@ -55,7 +55,7 @@ class FetchMoexData:
 
         return {"columns": cols, "data": data_rows}
 
-    def __fetch_costs_for_ticker(self, ticker, from_data, till_date):
+    def __fetch_candles_for_ticker(self, ticker, from_data, till_date):
         url_costs = "iss/engines/stock/markets/shares/boards/tqbr/securities"
         url_type = cost_mapping[ticker].url_type
 
@@ -72,9 +72,9 @@ class FetchMoexData:
             url = f"{self.moex_api_base_url}/{url_costs}/{asset_code}/candles.json?from={cur_from}&till={cur_till}&interval=24"
             return requests.get(url, headers=self.headers).json()
 
-        return self.__fetch_data_for_ticker(chunk_fetcher, from_data, till_date, root_key="candles")
+        return self.__fetch_data_in_chunks(chunk_fetcher, from_data, till_date, root_key="candles")
 
-    def __fetch_costs_for_asset_code(self, asset_code, from_data, till_date):
+    def __fetch_candles_for_asset_code(self, asset_code, from_data, till_date):
         mapping_entry = cost_mapping[asset_code]
         url_costs = "iss/engines/stock/markets/shares/boards/tqbr/securities"
         url_type = mapping_entry.url_type
@@ -91,32 +91,49 @@ class FetchMoexData:
             url = f"{self.moex_api_base_url}/{url_costs}/{moex_code}/candles.json?from={cur_from}&till={cur_till}&interval=24"
             return requests.get(url, headers=self.headers).json()
 
-        return self.__fetch_data_for_ticker(chunk_fetcher, from_data, till_date, root_key="candles")
+        return self.__fetch_data_in_chunks(chunk_fetcher, from_data, till_date, root_key="candles")
 
-    def __fetch_market_data_for_ticker(self, ticker, from_data, till_date):
+    def __fetch_futoi_for_ticker(self, ticker, from_data, till_date):
         def build_numbers_url(cur_from, cur_till):
             return f"{self.moex_api_base_url}/iss/analyticalproducts/futoi/securities/{ticker}.json?from={cur_from}&till={cur_till}&latest=1"
 
         def chunk_fetcher(cur_from, cur_till):
             return requests.get(build_numbers_url(cur_from, cur_till), headers=self.headers).json()
 
-        return self.__fetch_data_for_ticker(chunk_fetcher, from_data, till_date, root_key="futoi")
+        return self.__fetch_data_in_chunks(chunk_fetcher, from_data, till_date, root_key="futoi")
 
-    def __fetch_json_from_moex(self, ticker, from_data, till_date):
+    def __fetch_futoi_for_asset_code(self, asset_code, from_data, till_date):
+        def build_numbers_url(cur_from, cur_till):
+            return f"{self.moex_api_base_url}/iss/analyticalproducts/futoi/securities/{asset_code}.json?from={cur_from}&till={cur_till}&latest=1"
+
+        def chunk_fetcher(cur_from, cur_till):
+            return requests.get(build_numbers_url(cur_from, cur_till), headers=self.headers).json()
+
+        return self.__fetch_data_in_chunks(chunk_fetcher, from_data, till_date, root_key="futoi")
+
+    def __fetch_ticker_data(self, ticker, from_data, till_date):
         is_custom = cost_mapping[ticker].url_type == "custom"
+        needs_synthetic_nums = is_custom and ticker == "РТС"
 
-        resp_numbers = self.__fetch_market_data_for_ticker(ticker, from_data, till_date)
+        if needs_synthetic_nums:
+            base_codes = cost_mapping[ticker].asset_code
+            resp_numbers = [
+                self.__fetch_futoi_for_asset_code(code, from_data, till_date)
+                for code in base_codes
+            ]
+        else:
+            resp_numbers = self.__fetch_futoi_for_ticker(ticker, from_data, till_date)
 
         if not is_custom:
-            resp_costs = self.__fetch_costs_for_ticker(ticker, from_data, till_date)
+            resp_costs = self.__fetch_candles_for_ticker(ticker, from_data, till_date)
         else:
             base_codes = cost_mapping[ticker].asset_code
             resp_costs = [
-                self.__fetch_costs_for_asset_code(code, from_data, till_date)
+                self.__fetch_candles_for_asset_code(code, from_data, till_date)
                 for code in base_codes
             ]
 
-        return resp_numbers, resp_costs, is_custom
+        return resp_numbers, resp_costs, is_custom, needs_synthetic_nums
 
     def __build_cost_dataframe(self, response_costs):
         df_costs = pd.DataFrame(response_costs['data'], columns=response_costs['columns'])
@@ -128,19 +145,27 @@ class FetchMoexData:
             df_costs = df_costs.sort_values(by='tradedate', ascending=True)
         return df_costs
 
-    def __build_dataframes_from_json(self, ticker, response_numbers, response_costs, is_custom=False):
+    def __build_numbers_dataframe(self, response_numbers):
         df_main = pd.DataFrame(response_numbers["data"], columns=response_numbers["columns"])
         df_main.drop(['sess_id', 'seqnum', 'systime', 'trade_session_date'], axis=1, inplace=True, errors='ignore')
+        if 'tradedate' in df_main.columns:
+            df_main['tradedate'] = pd.to_datetime(df_main['tradedate']).dt.date
+            df_main = df_main.sort_values(by='tradedate', ascending=True)
+        return df_main
+
+    def __build_dataframes_from_json(self, ticker, response_numbers, response_costs, is_custom=False,
+                                     needs_synthetic_numbers=False):
+        if needs_synthetic_numbers:
+            base_numbers_dfs = [self.__build_numbers_dataframe(resp) for resp in response_numbers]
+            df_main = build_custom_numbers_dataframe(ticker, base_numbers_dfs)
+        else:
+            df_main = self.__build_numbers_dataframe(response_numbers)
 
         if not is_custom:
             df_costs = self.__build_cost_dataframe(response_costs)
         else:
             base_cost_dfs = [self.__build_cost_dataframe(resp) for resp in response_costs]
             df_costs = build_custom_costs_dataframe(ticker, base_cost_dfs)
-
-        if 'tradedate' in df_main.columns:
-            df_main['tradedate'] = pd.to_datetime(df_main['tradedate']).dt.date
-            df_main = df_main.sort_values(by='tradedate', ascending=True)
 
         return df_main, df_costs, list(set(df_main.columns) | set(df_costs.columns))
 
@@ -250,10 +275,13 @@ class FetchMoexData:
 
     def fetchFutoiData(self, ticker, participant_type="", data_types="", from_data=str(date.today().isoformat()),
                        till_date=str(date.today().isoformat())):
-        response_numbers, response_costs, is_custom = self.__fetch_json_from_moex(ticker, from_data, till_date)
+        response_numbers, response_costs, is_custom, needs_synthetic_numbers = self.__fetch_ticker_data(ticker,
+                                                                                                        from_data,
+                                                                                                        till_date)
 
         df_main, df_costs, initial_columns = self.__build_dataframes_from_json(
-            ticker, response_numbers, response_costs, is_custom=is_custom
+            ticker, response_numbers, response_costs, is_custom=is_custom,
+            needs_synthetic_numbers=needs_synthetic_numbers
         )
 
         if df_main.empty and df_costs.empty:
@@ -291,10 +319,13 @@ class FetchMoexData:
 
         api_start_date = (requested_from_date - timedelta(weeks=number_of_weeks)).isoformat()
 
-        response_numbers, response_costs, is_custom = self.__fetch_json_from_moex(ticker, api_start_date, till_date)
+        response_numbers, response_costs, is_custom, needs_synthetic_numbers = self.__fetch_ticker_data(ticker,
+                                                                                                         api_start_date,
+                                                                                                         till_date)
 
         df_main, df_costs, _ = self.__build_dataframes_from_json(
-            ticker, response_numbers, response_costs, is_custom=is_custom
+            ticker, response_numbers, response_costs, is_custom=is_custom,
+            needs_synthetic_numbers=needs_synthetic_numbers
         )
 
         if df_main.empty and df_costs.empty:
@@ -328,10 +359,13 @@ class FetchMoexData:
     def downloadTable(self, ticker, participant_type="", data_types="", from_data=str(date.today().isoformat()),
                       till_date=str(date.today().isoformat()), number_of_weeks=0):
 
-        response_numbers, response_costs, is_custom = self.__fetch_json_from_moex(ticker, from_data, till_date)
+        response_numbers, response_costs, is_custom, needs_synthetic_numbers = self.__fetch_ticker_data(ticker,
+                                                                                                        from_data,
+                                                                                                        till_date)
 
         df_main, df_costs, _ = self.__build_dataframes_from_json(
-            ticker, response_numbers, response_costs, is_custom=is_custom
+            ticker, response_numbers, response_costs, is_custom=is_custom,
+            needs_synthetic_numbers=needs_synthetic_numbers
         )
 
         df_main = self.__filter_by_participant_type(participant_type, df_main)

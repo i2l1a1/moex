@@ -1,5 +1,48 @@
+import pandas as pd
+
 OUNCE_IN_GRAMS = 31.1034768
 ROUND_PRECISION = 3
+
+
+def compute_custom_numbers(ticker, val_a, val_b):
+    if pd.isna(val_a) or pd.isna(val_b):
+        return None
+
+    if ticker == "РТС":
+        return round(val_a + val_b / 10, ROUND_PRECISION)
+
+    return None
+
+
+def build_custom_numbers_dataframe(ticker, base_numbers_dfs):
+    empty_columns = ["tradedate", "clgroup", "pos", "pos_long", "pos_short", "pos_long_num", "pos_short_num"]
+    if len(base_numbers_dfs) != 2:
+        return pd.DataFrame(columns=empty_columns)
+
+    df_a, df_b = base_numbers_dfs[0], base_numbers_dfs[1]
+
+    if df_a.empty or df_b.empty:
+        return pd.DataFrame(columns=empty_columns)
+
+    merge_keys = ["tradedate", "clgroup"]
+    if not all(key in df_a.columns and key in df_b.columns for key in merge_keys):
+        return pd.DataFrame(columns=empty_columns)
+
+    df = df_a.merge(df_b, on=merge_keys, how="outer", suffixes=("_a", "_b"))
+
+    if df.empty:
+        return pd.DataFrame(columns=empty_columns)
+
+    numeric_fields = ["pos", "pos_long", "pos_short", "pos_long_num", "pos_short_num"]
+
+    for field in numeric_fields:
+        col_a = f"{field}_a"
+        col_b = f"{field}_b"
+        if col_a in df.columns and col_b in df.columns:
+            df[field] = df.apply(lambda row: compute_custom_numbers(ticker, row[col_a], row[col_b]), axis=1)
+            df = df.drop(columns=[col_a, col_b])
+
+    return df
 
 
 def build_custom_costs_dataframe(ticker, base_cost_dfs):
