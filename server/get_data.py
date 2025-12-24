@@ -83,7 +83,8 @@ class FetchMoexData:
 
     def __fetch_ticker_data(self, ticker, from_data, till_date):
         is_custom = cost_mapping[ticker].url_type == "custom"
-        needs_synthetic_nums = is_custom and ticker in synthetic_tickers
+        is_synthetic = cost_mapping[ticker].url_type == "synthetic"
+        needs_synthetic_nums = (is_custom or is_synthetic) and ticker in synthetic_tickers
 
         if needs_synthetic_nums:
             base_codes = cost_mapping[ticker].asset_code
@@ -94,8 +95,11 @@ class FetchMoexData:
         else:
             resp_numbers = self.__fetch_futoi(ticker, from_data, till_date)
 
-        if not is_custom:
+        if not is_custom and not is_synthetic:
             resp_costs = self.__fetch_candles(ticker, from_data, till_date)
+        elif is_synthetic:
+            cost_code = cost_mapping[ticker].cost_asset_code[0]
+            resp_costs = self.__fetch_candles(cost_code, from_data, till_date)
         else:
             base_codes = cost_mapping[ticker].asset_code
             resp_costs = [
@@ -131,7 +135,8 @@ class FetchMoexData:
         else:
             df_main = self.__build_numbers_dataframe(response_numbers)
 
-        if not is_custom:
+        is_synthetic = cost_mapping[ticker].url_type == "synthetic"
+        if not is_custom or is_synthetic:
             df_costs = self.__build_cost_dataframe(response_costs)
         else:
             base_cost_dfs = [self.__build_cost_dataframe(resp) for resp in response_costs]

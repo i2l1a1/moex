@@ -1,10 +1,11 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 @dataclass
 class TickerInfo:
     asset_code: list[str]
     url_type: str
+    cost_asset_code: list[str] = field(default_factory=list)
 
 
 cost_mapping = {
@@ -73,9 +74,11 @@ cost_mapping = {
     "RM": TickerInfo(["RTSI"], "index"),
     "PLTRUB_TOM": TickerInfo(["PLTRUB_TOM"], "currency"),
     "PLDRUB_TOM": TickerInfo(["PLDRUB_TOM"], "currency"),
-    "РТС": TickerInfo(["RI", "RM"], "custom"),
-    "SCNYR": TickerInfo(["CR", "CNYRUBF"], "custom"),
-    "SUSDR": TickerInfo(["Si", "USDRUBF"], "custom"),
-    "SEURR": TickerInfo(["Eu", "EURRUBF"], "custom"),
-    "SMOEX": TickerInfo(["MX", "MM", "IMOEXF"], "custom"),
+    "РТС": TickerInfo(["RI", "RM"], "synthetic", ["RTSI"]),
+    "SCNYR": TickerInfo(["CR", "CNYRUBF"], "synthetic", ["CNYRUB_TOM"]),
+    "SUSDR": TickerInfo(["Si", "USDRUBF"], "synthetic", ["USDRUBF"]),
+    "SEURR": TickerInfo(["Eu", "EURRUBF"], "synthetic", ["EURRUBF"]),
+    "SMOEX": TickerInfo(["MX", "MM", "IMOEXF"], "synthetic", ["IMOEXF"]),
+    "RTSI": TickerInfo(["RTSI"], "index"),
+    "CNYRUB_TOM": TickerInfo(["CNYRUB_TOM"], "currency")
 }
