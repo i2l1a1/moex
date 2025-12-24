@@ -1,38 +1,73 @@
 import pandas as pd
+from data_mapping import cost_mapping
 
 OUNCE_IN_GRAMS = 31.1034768
 ROUND_PRECISION = 3
 
-synthetic_tickers = ("РТС", "SCNYR", "SUSDR", "SEURR")
+SYNTHETIC_FORMULAS = {
+    "РТС": lambda a, b, c=None: a + b / 10,
+    "SCNYR": lambda a, b, c=None: a + b,
+    "SUSDR": lambda a, b, c=None: a + b,
+    "SEURR": lambda a, b, c=None: a + b,
+    "SMOEX": lambda a, b, c: a + b / 10 + c / 10,
+}
+
+COST_FORMULAS = {
+    "ED": lambda a, b, c=None: a / b if b not in (None, 0) else None,
+    "GD": lambda a, b, c=None: a * OUNCE_IN_GRAMS / b if b not in (None, 0) else None,
+    "SV": lambda a, b, c=None: a * OUNCE_IN_GRAMS / b if b not in (None, 0) else None,
+    "PT": lambda a, b, c=None: a * OUNCE_IN_GRAMS / b if b not in (None, 0) else None,
+    "PD": lambda a, b, c=None: a * OUNCE_IN_GRAMS / b if b not in (None, 0) else None,
+    "UC": lambda a, b, c=None: a / b if b not in (None, 0) else None,
+    **SYNTHETIC_FORMULAS,
+}
+
+synthetic_tickers = SYNTHETIC_FORMULAS.keys()
 
 
-def compute_custom_numbers(ticker, val_a, val_b):
-    if pd.isna(val_a) or pd.isna(val_b):
+def compute_custom_numbers(ticker, val_a, val_b, val_c=None):
+    formula = SYNTHETIC_FORMULAS.get(ticker)
+    if formula is None:
         return None
 
-    if ticker == "РТС":
-        return round(val_a + val_b / 10, ROUND_PRECISION)
-    if ticker in {"SCNYR", "SUSDR", "SEURR"}:
-        return round(val_a + val_b, ROUND_PRECISION)
-
-    return None
+    if val_c is None:
+        if pd.isna(val_a) or pd.isna(val_b):
+            return None
+        return round(formula(val_a, val_b), ROUND_PRECISION)
+    else:
+        if pd.isna(val_a) or pd.isna(val_b) or pd.isna(val_c):
+            return None
+        return round(formula(val_a, val_b, val_c), ROUND_PRECISION)
 
 
 def build_custom_numbers_dataframe(ticker, base_numbers_dfs):
     empty_columns = ["tradedate", "clgroup", "pos", "pos_long", "pos_short", "pos_long_num", "pos_short_num"]
-    if len(base_numbers_dfs) != 2:
+
+    expected_count = len(cost_mapping[ticker].asset_code) if ticker in cost_mapping else 2
+    if len(base_numbers_dfs) != expected_count:
         return pd.DataFrame(columns=empty_columns)
 
-    df_a, df_b = base_numbers_dfs[0], base_numbers_dfs[1]
-
-    if df_a.empty or df_b.empty:
+    if any(df.empty for df in base_numbers_dfs):
         return pd.DataFrame(columns=empty_columns)
 
     merge_keys = ["tradedate", "clgroup"]
-    if not all(key in df_a.columns and key in df_b.columns for key in merge_keys):
+    if not all(all(key in df.columns for df in base_numbers_dfs) for key in merge_keys):
         return pd.DataFrame(columns=empty_columns)
 
-    df = df_a.merge(df_b, on=merge_keys, how="outer", suffixes=("_a", "_b"))
+    df = base_numbers_dfs[0].merge(
+        base_numbers_dfs[1],
+        on=merge_keys,
+        how="outer",
+        suffixes=("_a", "_b")
+    )
+
+    if expected_count == 3:
+        df = df.merge(
+            base_numbers_dfs[2],
+            on=merge_keys,
+            how="outer",
+            suffixes=("", "_c")
+        )
 
     if df.empty:
         return pd.DataFrame(columns=empty_columns)
@@ -40,51 +75,64 @@ def build_custom_numbers_dataframe(ticker, base_numbers_dfs):
     numeric_fields = ["pos", "pos_long", "pos_short", "pos_long_num", "pos_short_num"]
 
     for field in numeric_fields:
-        col_a = f"{field}_a"
-        col_b = f"{field}_b"
-        if col_a in df.columns and col_b in df.columns:
-            df[field] = df.apply(lambda row: compute_custom_numbers(ticker, row[col_a], row[col_b]), axis=1)
-            df = df.drop(columns=[col_a, col_b])
+        cols = [f"{field}_a", f"{field}_b"]
+        if expected_count == 3:
+            cols.append(f"{field}_c")
+
+        if all(col in df.columns for col in cols):
+            if expected_count == 3:
+                df[field] = df.apply(
+                    lambda row: compute_custom_numbers(ticker, row[cols[0]], row[cols[1]], row[cols[2]]),
+                    axis=1
+                )
+            else:
+                df[field] = df.apply(
+                    lambda row: compute_custom_numbers(ticker, row[cols[0]], row[cols[1]]),
+                    axis=1
+                )
+            df = df.drop(columns=cols)
 
     return df
 
 
 def build_custom_costs_dataframe(ticker, base_cost_dfs):
-    if len(base_cost_dfs) == 2:
-        df = base_cost_dfs[0].merge(
-            base_cost_dfs[1],
-            on="tradedate",
-            how="outer",
-            suffixes=("_a", "_b"),
-        )
-    else:
-        df = None
+    expected_count = len(cost_mapping[ticker].asset_code) if ticker in cost_mapping else 2
+
+    if len(base_cost_dfs) != expected_count:
+        return pd.DataFrame(columns=["tradedate", "cost"])
+
+    df = base_cost_dfs[0].merge(
+        base_cost_dfs[1],
+        on="tradedate",
+        how="outer",
+        suffixes=("_a", "_b"),
+    )
+
+    if expected_count == 3:
+        df_c_renamed = base_cost_dfs[2].rename(columns={"cost": "cost_c"})
+        df = df.merge(df_c_renamed, on="tradedate", how="outer")
 
     def compute_custom_cost(row):
         a = row.get("cost_a")
         b = row.get("cost_b")
+        c = row.get("cost_c") if expected_count == 3 else None
 
-        if ticker == "ED":
-            if a is None or b in (None, 0):
+        formula = COST_FORMULAS.get(ticker)
+        if formula is None:
+            return None
+
+        if expected_count == 3:
+            if a is None or b is None or c is None:
                 return None
-            return round(a / b, ROUND_PRECISION)
-        if ticker in {"GD", "SV", "PT", "PD"}:
-            if a is None or b in (None, 0):
-                return None
-            return round(a * OUNCE_IN_GRAMS / b, ROUND_PRECISION)
-        if ticker == "UC":
-            if a is None or b in (None, 0):
-                return None
-            return round(a / b, ROUND_PRECISION)
-        if ticker == "РТС":
+            result = formula(a, b, c)
+        else:
             if a is None or b is None:
                 return None
-            return round(a + b / 10, ROUND_PRECISION)
-        if ticker in {"SCNYR", "SUSDR", "SEURR"}:
-            if a is None or b is None:
-                return None
-            return round(a + b, ROUND_PRECISION)
-        return None
+            result = formula(a, b)
+
+        if result is None:
+            return None
+        return round(result, ROUND_PRECISION)
 
     df["cost"] = df.apply(compute_custom_cost, axis=1)
 

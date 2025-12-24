@@ -77,4 +77,5 @@ cost_mapping = {
     "SCNYR": TickerInfo(["CR", "CNYRUBF"], "custom"),
     "SUSDR": TickerInfo(["Si", "USDRUBF"], "custom"),
     "SEURR": TickerInfo(["Eu", "EURRUBF"], "custom"),
+    "SMOEX": TickerInfo(["MX", "MM", "IMOEXF"], "custom"),
 }
