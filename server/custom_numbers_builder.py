@@ -3,6 +3,8 @@ import pandas as pd
 OUNCE_IN_GRAMS = 31.1034768
 ROUND_PRECISION = 3
 
+synthetic_tickers = ("РТС", "SCNYR", "SUSDR", "SEURR")
+
 
 def compute_custom_numbers(ticker, val_a, val_b):
     if pd.isna(val_a) or pd.isna(val_b):

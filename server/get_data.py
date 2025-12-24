@@ -7,7 +7,7 @@ from fastapi.responses import StreamingResponse
 import io
 
 from data_mapping import cost_mapping
-from custom_costs_df import build_custom_costs_dataframe, build_custom_numbers_dataframe
+from custom_numbers_builder import build_custom_costs_dataframe, build_custom_numbers_dataframe, synthetic_tickers
 
 env = Env()
 env.read_env("../.env")
@@ -18,16 +18,16 @@ class FetchMoexData:
     moex_api_base_url = "https://apim.moex.com"
     headers = {'Authorization': f'Bearer {ALGOPACK_API_KEY}'}
 
+    def __parse_date(self, date_str):
+        try:
+            return datetime.fromisoformat(date_str).date()
+        except ValueError:
+            return date.today()
+
     def __fetch_data_in_chunks(self, chunk_fetcher, from_data, till_date, root_key):
         _min_date = date(2007, 1, 1)
-        try:
-            _from = datetime.fromisoformat(from_data).date()
-        except ValueError:
-            _from = date.today()
-        try:
-            _till = datetime.fromisoformat(till_date).date()
-        except ValueError:
-            _till = date.today()
+        _from = self.__parse_date(from_data)
+        _till = self.__parse_date(till_date)
 
         _from = _min_date if _from <= _min_date else _from
         _till = _min_date if _till <= _min_date else _till
@@ -55,18 +55,18 @@ class FetchMoexData:
 
         return {"columns": cols, "data": data_rows}
 
-    def __fetch_candles_for_ticker(self, ticker, from_data, till_date):
-        url_costs = "iss/engines/stock/markets/shares/boards/tqbr/securities"
-        url_type = cost_mapping[ticker].url_type
+    def __get_url_for_type(self, url_type):
+        url_mapping = {
+            "futures": "iss/engines/futures/markets/forts/boards/rfud/securities",
+            "index": "iss/engines/stock/markets/index/securities",
+            "currency": "iss/engines/currency/markets/selt/boardgroups/13/securities"
+        }
+        return url_mapping.get(url_type, "iss/engines/stock/markets/shares/boards/tqbr/securities")
 
-        if url_type == "futures":
-            url_costs = "iss/engines/futures/markets/forts/boards/rfud/securities"
-        elif url_type == "index":
-            url_costs = "iss/engines/stock/markets/index/securities"
-        elif url_type == "currency":
-            url_costs = "iss/engines/currency/markets/selt/boardgroups/13/securities"
-
-        asset_code = cost_mapping[ticker].asset_code[0]
+    def __fetch_candles(self, identifier, from_data, till_date):
+        mapping_entry = cost_mapping[identifier]
+        url_costs = self.__get_url_for_type(mapping_entry.url_type)
+        asset_code = mapping_entry.asset_code[0]
 
         def chunk_fetcher(cur_from, cur_till):
             url = f"{self.moex_api_base_url}/{url_costs}/{asset_code}/candles.json?from={cur_from}&till={cur_till}&interval=24"
@@ -74,62 +74,32 @@ class FetchMoexData:
 
         return self.__fetch_data_in_chunks(chunk_fetcher, from_data, till_date, root_key="candles")
 
-    def __fetch_candles_for_asset_code(self, asset_code, from_data, till_date):
-        mapping_entry = cost_mapping[asset_code]
-        url_costs = "iss/engines/stock/markets/shares/boards/tqbr/securities"
-        url_type = mapping_entry.url_type
-        moex_code = mapping_entry.asset_code[0]
-
-        if url_type == "futures":
-            url_costs = "iss/engines/futures/markets/forts/boards/rfud/securities"
-        elif url_type == "index":
-            url_costs = "iss/engines/stock/markets/index/securities"
-        elif url_type == "currency":
-            url_costs = "iss/engines/currency/markets/selt/boardgroups/13/securities"
-
+    def __fetch_futoi(self, identifier, from_data, till_date):
         def chunk_fetcher(cur_from, cur_till):
-            url = f"{self.moex_api_base_url}/{url_costs}/{moex_code}/candles.json?from={cur_from}&till={cur_till}&interval=24"
+            url = f"{self.moex_api_base_url}/iss/analyticalproducts/futoi/securities/{identifier}.json?from={cur_from}&till={cur_till}&latest=1"
             return requests.get(url, headers=self.headers).json()
-
-        return self.__fetch_data_in_chunks(chunk_fetcher, from_data, till_date, root_key="candles")
-
-    def __fetch_futoi_for_ticker(self, ticker, from_data, till_date):
-        def build_numbers_url(cur_from, cur_till):
-            return f"{self.moex_api_base_url}/iss/analyticalproducts/futoi/securities/{ticker}.json?from={cur_from}&till={cur_till}&latest=1"
-
-        def chunk_fetcher(cur_from, cur_till):
-            return requests.get(build_numbers_url(cur_from, cur_till), headers=self.headers).json()
-
-        return self.__fetch_data_in_chunks(chunk_fetcher, from_data, till_date, root_key="futoi")
-
-    def __fetch_futoi_for_asset_code(self, asset_code, from_data, till_date):
-        def build_numbers_url(cur_from, cur_till):
-            return f"{self.moex_api_base_url}/iss/analyticalproducts/futoi/securities/{asset_code}.json?from={cur_from}&till={cur_till}&latest=1"
-
-        def chunk_fetcher(cur_from, cur_till):
-            return requests.get(build_numbers_url(cur_from, cur_till), headers=self.headers).json()
 
         return self.__fetch_data_in_chunks(chunk_fetcher, from_data, till_date, root_key="futoi")
 
     def __fetch_ticker_data(self, ticker, from_data, till_date):
         is_custom = cost_mapping[ticker].url_type == "custom"
-        needs_synthetic_nums = is_custom and ticker in ("РТС", "SCNYR", "SUSDR", "SEURR")
+        needs_synthetic_nums = is_custom and ticker in synthetic_tickers
 
         if needs_synthetic_nums:
             base_codes = cost_mapping[ticker].asset_code
             resp_numbers = [
-                self.__fetch_futoi_for_asset_code(code, from_data, till_date)
+                self.__fetch_futoi(code, from_data, till_date)
                 for code in base_codes
             ]
         else:
-            resp_numbers = self.__fetch_futoi_for_ticker(ticker, from_data, till_date)
+            resp_numbers = self.__fetch_futoi(ticker, from_data, till_date)
 
         if not is_custom:
-            resp_costs = self.__fetch_candles_for_ticker(ticker, from_data, till_date)
+            resp_costs = self.__fetch_candles(ticker, from_data, till_date)
         else:
             base_codes = cost_mapping[ticker].asset_code
             resp_costs = [
-                self.__fetch_candles_for_asset_code(code, from_data, till_date)
+                self.__fetch_candles(code, from_data, till_date)
                 for code in base_codes
             ]
 
@@ -273,11 +243,40 @@ class FetchMoexData:
         start = today - timedelta(weeks=int(number_of_weeks))
         return start.isoformat(), today.isoformat()
 
+    def __process_dataframe_pipeline(self, df_main, df_costs, participant_type, data_types,
+                                     add_open_interest=False, add_oscillator=False,
+                                     number_of_weeks=0, filter_by_data_types=True):
+        if df_main.empty and df_costs.empty:
+            return pd.DataFrame()
+
+        if add_open_interest:
+            df_main = self.__add_open_interest_column(data_types, df_main)
+
+        df_main = self.__filter_by_participant_type(participant_type, df_main)
+
+        if filter_by_data_types:
+            df_main = self.__filter_by_data_types(data_types, df_main)
+
+        df_main = self.__merge_all_dataframes(df_main, df_costs)
+
+        df_main = self.__drop_holidays_and_unnecessary_dates(df_main)
+
+        df_main = self.__add_pos_column(df_main)
+
+        if add_oscillator:
+            df_main = self.__add_oscillator_column(participant_type, df_main,
+                                                   number_of_weeks=number_of_weeks,
+                                                   data_types=data_types)
+
+        df_main = self._sanitize_dataframe(df_main)
+
+        return df_main
+
     def fetchFutoiData(self, ticker, participant_type="", data_types="", from_data=str(date.today().isoformat()),
                        till_date=str(date.today().isoformat())):
-        response_numbers, response_costs, is_custom, needs_synthetic_numbers = self.__fetch_ticker_data(ticker,
-                                                                                                        from_data,
-                                                                                                        till_date)
+        response_numbers, response_costs, is_custom, needs_synthetic_numbers = self.__fetch_ticker_data(
+            ticker, from_data, till_date
+        )
 
         df_main, df_costs, initial_columns = self.__build_dataframes_from_json(
             ticker, response_numbers, response_costs, is_custom=is_custom,
@@ -287,19 +286,10 @@ class FetchMoexData:
         if df_main.empty and df_costs.empty:
             return {"data": pd.DataFrame(), "missing_counts": {}}
 
-        df_main = self.__add_open_interest_column(data_types, df_main)
-
-        df_main = self.__filter_by_participant_type(participant_type, df_main)
-
-        df_main = self.__filter_by_data_types(data_types, df_main)
-
-        df_main = self.__merge_all_dataframes(df_main, df_costs)
-
-        df_main = self.__drop_holidays_and_unnecessary_dates(df_main)
-
-        df_main = self.__add_pos_column(df_main)
-
-        df_main = self._sanitize_dataframe(df_main)
+        df_main = self.__process_dataframe_pipeline(
+            df_main, df_costs, participant_type, data_types,
+            add_open_interest=True
+        )
 
         missing_counts = self.__count_missing_values(initial_columns, df_main)
 
@@ -312,74 +302,49 @@ class FetchMoexData:
                             till_date=str(date.today().isoformat()),
                             number_of_weeks=0):
 
-        try:
-            requested_from_date = date.fromisoformat(from_data)
-        except ValueError:
-            requested_from_date = date.today()
-
+        requested_from_date = self.__parse_date(from_data)
         api_start_date = (requested_from_date - timedelta(weeks=number_of_weeks)).isoformat()
 
-        response_numbers, response_costs, is_custom, needs_synthetic_numbers = self.__fetch_ticker_data(ticker,
-                                                                                                         api_start_date,
-                                                                                                         till_date)
+        response_numbers, response_costs, is_custom, needs_synthetic_numbers = self.__fetch_ticker_data(
+            ticker, api_start_date, till_date
+        )
 
         df_main, df_costs, _ = self.__build_dataframes_from_json(
             ticker, response_numbers, response_costs, is_custom=is_custom,
             needs_synthetic_numbers=needs_synthetic_numbers
         )
 
-        if df_main.empty and df_costs.empty:
+        df_main = self.__process_dataframe_pipeline(
+            df_main, df_costs, participant_type, data_types,
+            add_oscillator=True, number_of_weeks=number_of_weeks
+        )
+
+        if df_main.empty:
             return pd.DataFrame()
 
-        df_main = self.__filter_by_participant_type(participant_type, df_main)
-
-        df_main = self.__filter_by_data_types(data_types, df_main)
-
-        df_main = self.__merge_all_dataframes(df_main, df_costs)
-
-        df_main = self.__drop_holidays_and_unnecessary_dates(df_main)
-
-        df_main = self.__add_pos_column(df_main)
-
-        df_main = self.__add_oscillator_column(participant_type, df_main, number_of_weeks=number_of_weeks,
-                                               data_types=data_types)
-
-        try:
-            requested_till_date = date.fromisoformat(till_date)
-        except ValueError:
-            requested_till_date = date.today()
-
+        requested_till_date = self.__parse_date(till_date)
         mask_return = (df_main['tradedate'] >= requested_from_date) & (df_main['tradedate'] <= requested_till_date)
         df_main = df_main.loc[mask_return].reset_index(drop=True)
-
-        df_main = self._sanitize_dataframe(df_main)
 
         return df_main
 
     def downloadTable(self, ticker, participant_type="", data_types="", from_data=str(date.today().isoformat()),
                       till_date=str(date.today().isoformat()), number_of_weeks=0):
 
-        response_numbers, response_costs, is_custom, needs_synthetic_numbers = self.__fetch_ticker_data(ticker,
-                                                                                                        from_data,
-                                                                                                        till_date)
+        response_numbers, response_costs, is_custom, needs_synthetic_numbers = self.__fetch_ticker_data(
+            ticker, from_data, till_date
+        )
 
         df_main, df_costs, _ = self.__build_dataframes_from_json(
             ticker, response_numbers, response_costs, is_custom=is_custom,
             needs_synthetic_numbers=needs_synthetic_numbers
         )
 
-        df_main = self.__filter_by_participant_type(participant_type, df_main)
-
-        df_main = self.__merge_all_dataframes(df_main, df_costs)
-
-        df_main = self.__drop_holidays_and_unnecessary_dates(df_main)
-
-        df_main = self.__add_open_interest_column(data_types, df_main)
-
-        df_main = self.__add_pos_column(df_main)
-
-        df_main = self.__add_oscillator_column(participant_type, df_main, number_of_weeks=number_of_weeks,
-                                               data_types=data_types)
+        df_main = self.__process_dataframe_pipeline(
+            df_main, df_costs, participant_type, data_types,
+            add_open_interest=True, add_oscillator=True,
+            number_of_weeks=number_of_weeks, filter_by_data_types=False
+        )
 
         output = io.BytesIO()
         with pd.ExcelWriter(output, engine='xlsxwriter') as writer:  # type: ignore
