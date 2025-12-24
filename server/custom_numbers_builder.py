@@ -25,114 +25,80 @@ COST_FORMULAS = {
 synthetic_tickers = SYNTHETIC_FORMULAS.keys()
 
 
+def _apply_formula(formula, *values):
+    if any(pd.isna(val) for val in values):
+        return None
+    result = formula(*values)
+    return round(result, ROUND_PRECISION) if result is not None else None
+
+
 def compute_custom_numbers(ticker, val_a, val_b, val_c=None):
     formula = SYNTHETIC_FORMULAS.get(ticker)
     if formula is None:
         return None
+    return _apply_formula(formula, val_a, val_b, val_c) if val_c is not None else _apply_formula(formula, val_a, val_b)
 
-    if val_c is None:
-        if pd.isna(val_a) or pd.isna(val_b):
-            return None
-        return round(formula(val_a, val_b), ROUND_PRECISION)
-    else:
-        if pd.isna(val_a) or pd.isna(val_b) or pd.isna(val_c):
-            return None
-        return round(formula(val_a, val_b, val_c), ROUND_PRECISION)
+
+def _get_expected_count(ticker):
+    return len(cost_mapping[ticker].asset_code) if ticker in cost_mapping else 2
+
+
+def _merge_dataframes(base_dfs, merge_keys, expected_count):
+    df = base_dfs[0].merge(base_dfs[1], on=merge_keys, how="outer", suffixes=("_a", "_b"))
+    if expected_count == 3:
+        df = df.merge(base_dfs[2], on=merge_keys, how="outer", suffixes=("", "_c"))
+    return df
 
 
 def build_custom_numbers_dataframe(ticker, base_numbers_dfs):
     empty_columns = ["tradedate", "clgroup", "pos", "pos_long", "pos_short", "pos_long_num", "pos_short_num"]
+    expected_count = _get_expected_count(ticker)
 
-    expected_count = len(cost_mapping[ticker].asset_code) if ticker in cost_mapping else 2
-    if len(base_numbers_dfs) != expected_count:
-        return pd.DataFrame(columns=empty_columns)
-
-    if any(df.empty for df in base_numbers_dfs):
+    if len(base_numbers_dfs) != expected_count or any(df.empty for df in base_numbers_dfs):
         return pd.DataFrame(columns=empty_columns)
 
     merge_keys = ["tradedate", "clgroup"]
     if not all(all(key in df.columns for df in base_numbers_dfs) for key in merge_keys):
         return pd.DataFrame(columns=empty_columns)
 
-    df = base_numbers_dfs[0].merge(
-        base_numbers_dfs[1],
-        on=merge_keys,
-        how="outer",
-        suffixes=("_a", "_b")
-    )
-
-    if expected_count == 3:
-        df = df.merge(
-            base_numbers_dfs[2],
-            on=merge_keys,
-            how="outer",
-            suffixes=("", "_c")
-        )
-
+    df = _merge_dataframes(base_numbers_dfs, merge_keys, expected_count)
     if df.empty:
         return pd.DataFrame(columns=empty_columns)
 
     numeric_fields = ["pos", "pos_long", "pos_short", "pos_long_num", "pos_short_num"]
-
     for field in numeric_fields:
-        cols = [f"{field}_a", f"{field}_b"]
-        if expected_count == 3:
-            cols.append(f"{field}_c")
-
+        cols = [f"{field}_a", f"{field}_b"] + ([f"{field}_c"] if expected_count == 3 else [])
         if all(col in df.columns for col in cols):
-            if expected_count == 3:
-                df[field] = df.apply(
-                    lambda row: compute_custom_numbers(ticker, row[cols[0]], row[cols[1]], row[cols[2]]),
-                    axis=1
-                )
-            else:
-                df[field] = df.apply(
-                    lambda row: compute_custom_numbers(ticker, row[cols[0]], row[cols[1]]),
-                    axis=1
-                )
+            df[field] = df.apply(
+                lambda row: compute_custom_numbers(ticker, *[row[col] for col in cols]),
+                axis=1
+            )
             df = df.drop(columns=cols)
 
     return df
 
 
 def build_custom_costs_dataframe(ticker, base_cost_dfs):
-    expected_count = len(cost_mapping[ticker].asset_code) if ticker in cost_mapping else 2
+    expected_count = _get_expected_count(ticker)
 
     if len(base_cost_dfs) != expected_count:
         return pd.DataFrame(columns=["tradedate", "cost"])
 
-    df = base_cost_dfs[0].merge(
-        base_cost_dfs[1],
-        on="tradedate",
-        how="outer",
-        suffixes=("_a", "_b"),
-    )
-
+    merge_keys = ["tradedate"]
     if expected_count == 3:
-        df_c_renamed = base_cost_dfs[2].rename(columns={"cost": "cost_c"})
-        df = df.merge(df_c_renamed, on="tradedate", how="outer")
+        base_cost_dfs = base_cost_dfs[:2] + [base_cost_dfs[2].rename(columns={"cost": "cost_c"})]
+
+    df = _merge_dataframes(base_cost_dfs, merge_keys, expected_count)
+
+    formula = COST_FORMULAS.get(ticker)
+    if formula is None:
+        return pd.DataFrame(columns=["tradedate", "cost"])
 
     def compute_custom_cost(row):
-        a = row.get("cost_a")
-        b = row.get("cost_b")
-        c = row.get("cost_c") if expected_count == 3 else None
-
-        formula = COST_FORMULAS.get(ticker)
-        if formula is None:
-            return None
-
+        values = [row.get("cost_a"), row.get("cost_b")]
         if expected_count == 3:
-            if a is None or b is None or c is None:
-                return None
-            result = formula(a, b, c)
-        else:
-            if a is None or b is None:
-                return None
-            result = formula(a, b)
-
-        if result is None:
-            return None
-        return round(result, ROUND_PRECISION)
+            values.append(row.get("cost_c"))
+        return _apply_formula(formula, *values)
 
     df["cost"] = df.apply(compute_custom_cost, axis=1)
 
