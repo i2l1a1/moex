@@ -25,21 +25,33 @@ function Graph({
                    loading: externalLoading,
                    error: externalError,
                }) {
+    let filteredCurvesToRender;
+
     if (is_oscillator) {
         if (participantTypes === "Individuals") {
-            selectedCurvesToRender = ["oscillator_FIZ"];
+            filteredCurvesToRender = ["oscillator_FIZ"];
         } else if (participantTypes === "Companies") {
-            selectedCurvesToRender = ["oscillator_YUR"];
+            filteredCurvesToRender = ["oscillator_YUR"];
         } else {
-            selectedCurvesToRender = ["oscillator_FIZ", "oscillator_YUR"];
+            filteredCurvesToRender = ["oscillator_FIZ", "oscillator_YUR"];
         }
     } else {
-        selectedCurvesToRender = selectedCurvesToRender.filter(
+        filteredCurvesToRender = selectedCurvesToRender.filter(
             (c) =>
-                c !== "oscillator" &&
-                c !== "oscillator_FIZ" &&
-                c !== "oscillator_YUR"
+                !c.startsWith("oscillator")
         );
+
+        if (participantTypes === "Individuals") {
+            filteredCurvesToRender = filteredCurvesToRender.filter((c) => c.startsWith("FIZ_") || !c.includes("_"));
+        } else if (participantTypes === "Companies") {
+            filteredCurvesToRender = filteredCurvesToRender.filter((c) => c.startsWith("YUR_") || !c.includes("_"));
+        }
+
+        if (dataTypes === "Number of contracts") {
+            filteredCurvesToRender = filteredCurvesToRender.filter((c) => c.includes("pos") && !c.includes("num"));
+        } else if (dataTypes === "Number of traders") {
+            filteredCurvesToRender = filteredCurvesToRender.filter((c) => c.includes("num"));
+        }
     }
 
     const data = externalData;
@@ -166,7 +178,7 @@ function Graph({
                     isAnimationActive={false}
                     content={
                         <CustomTooltip
-                            selectedCurves={selectedCurvesToRender}
+                            selectedCurves={filteredCurvesToRender}
                         />
                     }
                 />
@@ -183,7 +195,7 @@ function Graph({
                     connectNulls={false}
                 />
 
-                {selectedCurvesToRender.map((curveName) => {
+                {filteredCurvesToRender.map((curveName) => {
                     const curveInfo = curveMapping[curveName];
                     if (curveInfo) {
                         return (
