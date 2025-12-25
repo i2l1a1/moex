@@ -48,7 +48,7 @@ function Graph({
         }
 
         if (dataTypes === "Number of contracts") {
-            filteredCurvesToRender = filteredCurvesToRender.filter((c) => c.includes("pos") && !c.includes("num"));
+            filteredCurvesToRender = filteredCurvesToRender.filter((c) => (c.includes("pos") && !c.includes("num")) || c === "open_interest");
         } else if (dataTypes === "Number of traders") {
             filteredCurvesToRender = filteredCurvesToRender.filter((c) => c.includes("num"));
         }
