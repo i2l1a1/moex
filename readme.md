@@ -10,9 +10,9 @@ frontend that renders interactive charts for users.
 
 ## Backend Setup
 
-1. Go to the `moex-analytics-main/server` folder: `cd moex-analytics-main/server`.
+1. Open `env.example`, add your real API key, then save the file as `.env`.
 
-2. Open `env.example`, add your real API key, then save the file as `.env`.
+2. Go to the `moex-analytics-main/server` folder: `cd moex-analytics-main/server`.
 
 3. Create a Python virtual environment: `python3 -m venv venv`.
 
