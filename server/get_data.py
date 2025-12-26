@@ -1,10 +1,11 @@
-import requests
+import httpx
 from environs import Env
 from datetime import date, timedelta, datetime
 import pandas as pd
 import holidays
 from fastapi.responses import StreamingResponse
 import io
+import asyncio
 
 from data_mapping import cost_mapping
 from custom_numbers_builder import build_custom_costs_dataframe, build_custom_numbers_dataframe, synthetic_tickers
@@ -15,8 +16,11 @@ ALGOPACK_API_KEY = env("ALGOPACK_API_KEY")
 
 
 class FetchMoexData:
-    moex_api_base_url = "https://apim.moex.com"
-    headers = {'Authorization': f'Bearer {ALGOPACK_API_KEY}'}
+    def __init__(self):
+        timeout = httpx.Timeout(30.0, connect=10.0)
+        self._client = httpx.AsyncClient(timeout=timeout)
+        self.moex_api_base_url = "https://apim.moex.com"
+        self.headers = {'Authorization': f'Bearer {ALGOPACK_API_KEY}'}
 
     def __parse_date(self, date_str):
         try:
@@ -24,7 +28,7 @@ class FetchMoexData:
         except ValueError:
             return date.today()
 
-    def __fetch_data_in_chunks(self, chunk_fetcher, from_data, till_date, root_key):
+    async def __fetch_data_in_chunks(self, chunk_fetcher, from_data, till_date, root_key):
         _min_date = date(2007, 1, 1)
         _from = self.__parse_date(from_data)
         _till = self.__parse_date(till_date)
@@ -35,23 +39,27 @@ class FetchMoexData:
         start = datetime.fromisoformat(_from.isoformat())
         end = datetime.fromisoformat(_till.isoformat())
 
-        data_rows = []
-        cols = None
-
+        ranges = []
         cur = start
         while cur <= end:
             chunk_end = min(cur + timedelta(days=365), end)
             cur_from = cur.date().isoformat()
             cur_till = chunk_end.date().isoformat()
+            ranges.append((cur_from, cur_till))
+            cur = chunk_end + timedelta(days=1)
 
-            resp = chunk_fetcher(cur_from, cur_till)
+        async def fetch_range(cur_from, cur_till):
+            return await chunk_fetcher(cur_from, cur_till)
 
+        tasks = [asyncio.create_task(fetch_range(cur_from, cur_till)) for cur_from, cur_till in ranges]
+        results = await asyncio.gather(*tasks)
+
+        data_rows = []
+        cols = None
+        for resp in results:
             if cols is None:
                 cols = resp[root_key]["columns"]
-
             data_rows.extend(resp[root_key]["data"])
-
-            cur = chunk_end + timedelta(days=1)
 
         return {"columns": cols, "data": data_rows}
 
@@ -63,49 +71,47 @@ class FetchMoexData:
         }
         return url_mapping.get(url_type, "iss/engines/stock/markets/shares/boards/tqbr/securities")
 
-    def __fetch_candles(self, identifier, from_data, till_date):
+    async def __fetch_candles(self, identifier, from_data, till_date):
         mapping_entry = cost_mapping[identifier]
         url_costs = self.__get_url_for_type(mapping_entry.url_type)
         asset_code = mapping_entry.asset_code[0]
 
-        def chunk_fetcher(cur_from, cur_till):
+        async def chunk_fetcher(cur_from, cur_till):
             url = f"{self.moex_api_base_url}/{url_costs}/{asset_code}/candles.json?from={cur_from}&till={cur_till}&interval=24"
-            return requests.get(url, headers=self.headers).json()
+            resp = await self._client.get(url, headers=self.headers)
+            return resp.json()
 
-        return self.__fetch_data_in_chunks(chunk_fetcher, from_data, till_date, root_key="candles")
+        return await self.__fetch_data_in_chunks(chunk_fetcher, from_data, till_date, root_key="candles")
 
-    def __fetch_futoi(self, identifier, from_data, till_date):
-        def chunk_fetcher(cur_from, cur_till):
+    async def __fetch_futoi(self, identifier, from_data, till_date):
+        async def chunk_fetcher(cur_from, cur_till):
             url = f"{self.moex_api_base_url}/iss/analyticalproducts/futoi/securities/{identifier}.json?from={cur_from}&till={cur_till}&latest=1"
-            return requests.get(url, headers=self.headers).json()
+            resp = await self._client.get(url, headers=self.headers)
+            return resp.json()
 
-        return self.__fetch_data_in_chunks(chunk_fetcher, from_data, till_date, root_key="futoi")
+        return await self.__fetch_data_in_chunks(chunk_fetcher, from_data, till_date, root_key="futoi")
 
-    def __fetch_ticker_data(self, ticker, from_data, till_date):
+    async def __fetch_ticker_data(self, ticker, from_data, till_date):
         is_custom = cost_mapping[ticker].url_type == "custom"
         is_synthetic = cost_mapping[ticker].url_type == "synthetic"
         needs_synthetic_nums = (is_custom or is_synthetic) and ticker in synthetic_tickers
 
         if needs_synthetic_nums:
             base_codes = cost_mapping[ticker].asset_code
-            resp_numbers = [
-                self.__fetch_futoi(code, from_data, till_date)
-                for code in base_codes
-            ]
+            resp_numbers = await asyncio.gather(
+                *(self.__fetch_futoi(code, from_data, till_date) for code in base_codes))
         else:
-            resp_numbers = self.__fetch_futoi(ticker, from_data, till_date)
+            resp_numbers = await self.__fetch_futoi(ticker, from_data, till_date)
 
         if not is_custom and not is_synthetic:
-            resp_costs = self.__fetch_candles(ticker, from_data, till_date)
+            resp_costs = await self.__fetch_candles(ticker, from_data, till_date)
         elif is_synthetic:
             cost_code = cost_mapping[ticker].cost_asset_code[0]
-            resp_costs = self.__fetch_candles(cost_code, from_data, till_date)
+            resp_costs = await self.__fetch_candles(cost_code, from_data, till_date)
         else:
             base_codes = cost_mapping[ticker].asset_code
-            resp_costs = [
-                self.__fetch_candles(code, from_data, till_date)
-                for code in base_codes
-            ]
+            resp_costs = await asyncio.gather(
+                *(self.__fetch_candles(code, from_data, till_date) for code in base_codes))
 
         return resp_numbers, resp_costs, is_custom, needs_synthetic_nums
 
@@ -277,52 +283,51 @@ class FetchMoexData:
 
         return df_main
 
-    def fetchFutoiData(self, ticker, participant_type="", data_types="", from_data=str(date.today().isoformat()),
-                       till_date=str(date.today().isoformat())):
-        response_numbers, response_costs, is_custom, needs_synthetic_numbers = self.__fetch_ticker_data(
+    async def fetchFutoiData(self, ticker, participant_type="", data_types="", from_data=str(date.today().isoformat()),
+                             till_date=str(date.today().isoformat())):
+        response_numbers, response_costs, is_custom, needs_synthetic_numbers = await self.__fetch_ticker_data(
             ticker, from_data, till_date
         )
 
-        df_main, df_costs, initial_columns = self.__build_dataframes_from_json(
-            ticker, response_numbers, response_costs, is_custom=is_custom,
-            needs_synthetic_numbers=needs_synthetic_numbers
+        df_main, df_costs, initial_columns = await asyncio.to_thread(
+            self.__build_dataframes_from_json,
+            ticker, response_numbers, response_costs, is_custom, needs_synthetic_numbers
         )
 
         if df_main.empty and df_costs.empty:
             return {"data": pd.DataFrame(), "missing_counts": {}}
 
-        df_main = self.__process_dataframe_pipeline(
-            df_main, df_costs, participant_type, data_types,
-            add_open_interest=True
-        )
+        df_main = await asyncio.to_thread(lambda: self.__process_dataframe_pipeline(
+            df_main, df_costs, participant_type, data_types, add_open_interest=True
+        ))
 
-        missing_counts = self.__count_missing_values(initial_columns, df_main)
+        missing_counts = await asyncio.to_thread(self.__count_missing_values, initial_columns, df_main)
 
         return {"data": df_main, "missing_counts": missing_counts}
 
-    def fetchOscillatorData(self, ticker,
-                            participant_type="",
-                            data_types="",
-                            from_data=str(date.today().isoformat()),
-                            till_date=str(date.today().isoformat()),
-                            number_of_weeks=0):
+    async def fetchOscillatorData(self, ticker,
+                                  participant_type="",
+                                  data_types="",
+                                  from_data=str(date.today().isoformat()),
+                                  till_date=str(date.today().isoformat()),
+                                  number_of_weeks=0):
 
         requested_from_date = self.__parse_date(from_data)
         api_start_date = (requested_from_date - timedelta(weeks=number_of_weeks)).isoformat()
 
-        response_numbers, response_costs, is_custom, needs_synthetic_numbers = self.__fetch_ticker_data(
+        response_numbers, response_costs, is_custom, needs_synthetic_numbers = await self.__fetch_ticker_data(
             ticker, api_start_date, till_date
         )
 
-        df_main, df_costs, _ = self.__build_dataframes_from_json(
-            ticker, response_numbers, response_costs, is_custom=is_custom,
-            needs_synthetic_numbers=needs_synthetic_numbers
+        df_main, df_costs, _ = await asyncio.to_thread(
+            self.__build_dataframes_from_json,
+            ticker, response_numbers, response_costs, is_custom, needs_synthetic_numbers
         )
 
-        df_main = self.__process_dataframe_pipeline(
+        df_main = await asyncio.to_thread(lambda: self.__process_dataframe_pipeline(
             df_main, df_costs, participant_type, data_types,
-            add_oscillator=True, number_of_weeks=number_of_weeks
-        )
+            add_open_interest=False, add_oscillator=True, number_of_weeks=number_of_weeks
+        ))
 
         if df_main.empty:
             return pd.DataFrame()
@@ -333,27 +338,35 @@ class FetchMoexData:
 
         return df_main
 
-    def downloadTable(self, ticker, participant_type="", data_types="", from_data=str(date.today().isoformat()),
-                      till_date=str(date.today().isoformat()), number_of_weeks=0):
+    async def downloadTable(self, ticker, participant_type="", data_types="", from_data=str(date.today().isoformat()),
+                            till_date=str(date.today().isoformat()), number_of_weeks=0):
 
-        response_numbers, response_costs, is_custom, needs_synthetic_numbers = self.__fetch_ticker_data(
+        response_numbers, response_costs, is_custom, needs_synthetic_numbers = await self.__fetch_ticker_data(
             ticker, from_data, till_date
         )
 
-        df_main, df_costs, _ = self.__build_dataframes_from_json(
-            ticker, response_numbers, response_costs, is_custom=is_custom,
-            needs_synthetic_numbers=needs_synthetic_numbers
+        df_main, df_costs, _ = await asyncio.to_thread(
+            self.__build_dataframes_from_json,
+            ticker, response_numbers, response_costs, is_custom, needs_synthetic_numbers
         )
 
-        df_main = self.__process_dataframe_pipeline(
+        df_main = await asyncio.to_thread(lambda: self.__process_dataframe_pipeline(
             df_main, df_costs, participant_type, data_types,
-            add_open_interest=True, add_oscillator=True,
-            number_of_weeks=number_of_weeks, filter_by_data_types=False
-        )
+            add_open_interest=True, add_oscillator=True, number_of_weeks=number_of_weeks, filter_by_data_types=False
+        ))
 
-        output = io.BytesIO()
-        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:  # type: ignore
-            df_main.to_excel(writer, index=False, sheet_name='Sheet1')
-        output.seek(0)
+        def _create_excel_bytes(df):
+            output = io.BytesIO()
+            with pd.ExcelWriter(output, engine='xlsxwriter') as writer:  # type: ignore
+                df.to_excel(writer, index=False, sheet_name='raw_data')
+            output.seek(0)
+            return output.getvalue()
 
-        return StreamingResponse(output)
+        excel_bytes = await asyncio.to_thread(_create_excel_bytes, df_main)
+        output_io = io.BytesIO(excel_bytes)
+        output_io.seek(0)
+
+        return StreamingResponse(output_io)
+
+    async def aclose(self):
+        await self._client.aclose()
